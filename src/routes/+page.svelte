@@ -1,13 +1,9 @@
 <script lang="ts">
-	import { sendMessage, subscribeToMessages, type Message } from '../lib/massaging';
+	import { sendMessage } from '../lib/massaging';
 	import userStore from '../lib/userStore';
+	import messageStore from '../lib/messageStore';
 
-	let messages: Message[] = [];
 	let message: string = '';
-
-	subscribeToMessages((newMessages: Message[]) => {
-		messages = newMessages;
-	});
 
 	async function handleSendMessage() {
 		await sendMessage(user?.email || 'Anonymous', message);
@@ -15,6 +11,7 @@
 	}
 
 	$: user = $userStore;
+	$: messages = $messageStore;
 </script>
 
 <div class="container">
@@ -35,7 +32,7 @@
 	.container {
 		background-color: white;
 		margin: 1em;
-		padding-top: 1rem;
+		padding: 1rem 0;
 		overflow: clip;
 
 		.messages {
