@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { logIn, logOut, signUp } from '../lib/auth';
 	import userStore from '../lib/userStore';
+	import '../app.css';
 
 	let email: string = '';
 	let password: string = '';
@@ -51,7 +52,7 @@
 	$: user = $userStore;
 </script>
 
-<div>
+<div class="container">
 	{#if user}
 		<div class="login-form">
 			<div>Welcome, {user.email}</div>
@@ -82,3 +83,16 @@
 </div>
 
 <slot />
+
+<style>
+	.container {
+		background-color: white;
+		margin: 1rem;
+	}
+	.login-form {
+		display: flex;
+		gap: 1rem;
+		flex-wrap: wrap;
+		align-items: center;
+	}
+</style>
