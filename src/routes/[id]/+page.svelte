@@ -4,7 +4,7 @@
 	import { formatTimestamp } from '../../lib/utils';
 
 	import { page } from '$app/stores';
-	import userStore from '../../lib/userStore';
+	import userStore, { type User } from '../../lib/userStore';
 	import roomStore from '../../lib/roomStore';
 	import messageStore from '../../lib/messageStore';
 
@@ -28,15 +28,27 @@
 		}
 	}
 
-	onMount(() => {
+	let user: User | null;
+
+	// Reactive statement that runs when `user` is set
+	$: if (user) {
+		console.log(`Subscribing User: ${user.email} to messages from Room: ${chatroomId}`);
 		subscribeToMessages(chatroomId, (newMessages) => {
 			messageStore.set(newMessages);
 		});
-	});
+	}
 
 	$: user = $userStore;
 	$: messages = $messageStore;
 	$: rooms = $roomStore;
+
+	onMount(async () => {
+		if (user) {
+			subscribeToMessages(chatroomId, (newMessages) => {
+				messageStore.set(newMessages);
+			});
+		}
+	});
 
 	interface RoomLookup {
 		[key: string]: string;

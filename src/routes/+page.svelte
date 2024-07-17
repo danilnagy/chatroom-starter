@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { subscribeToRooms } from '../lib/massaging';
 	import { createRoom } from '../lib/massaging';
 
-	import userStore from '../lib/userStore';
-	import roomStore from '../lib/roomStore';
+	import userStore, { type User } from '../lib/userStore';
+	import roomStore, { type Room } from '../lib/roomStore';
 
 	let newRoomName: string = '';
 
@@ -21,8 +23,26 @@
 		}
 	}
 
+	let user: User | null;
+
+	// Reactive statement that runs when `user` is set
+	$: if (user) {
+		console.log(`Subscribing user: ${user.email} to Room list`);
+		subscribeToRooms((newRooms: Room[]) => {
+			roomStore.set(newRooms);
+		});
+	}
+
 	$: user = $userStore;
 	$: rooms = $roomStore;
+
+	onMount(async () => {
+		if (user) {
+			subscribeToRooms((newRooms: Room[]) => {
+				roomStore.set(newRooms);
+			});
+		}
+	});
 </script>
 
 <div>
