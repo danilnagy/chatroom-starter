@@ -1,9 +1,5 @@
-import { get } from 'svelte/store';
-import wordStore from './wordStore';
-
-export function parseMessage(content: string): string {
+export function parseMessage(content: string, words: { [s: string]: string; }): string {
     let parsedContent = content;
-    const words = get(wordStore);
 
     for (const [phrase, url] of Object.entries(words)) {
         // Use a case-insensitive regular expression

@@ -8,6 +8,7 @@
 	import userStore, { type User } from '../../lib/userStore';
 	import roomStore from '../../lib/roomStore';
 	import messageStore from '../../lib/messageStore';
+	import wordStore from '../../lib/wordStore';
 
 	let message: string = '';
 
@@ -44,6 +45,7 @@
 	$: user = $userStore;
 	$: messages = $messageStore;
 	$: rooms = $roomStore;
+	$: words = $wordStore;
 
 	onMount(async () => {
 		fetchWords();
@@ -72,7 +74,8 @@
 				{#each messages as message (message.timestamp)}
 					<div>
 						<strong>{message.from}</strong> <em>({formatTimestamp(message.timestamp)})</em>: {@html parseMessage(
-							message.content
+							message.content,
+							words
 						)}
 					</div>
 				{/each}
