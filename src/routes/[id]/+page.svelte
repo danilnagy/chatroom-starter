@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { sendMessage, subscribeToMessages, fetchWords } from '../../lib/massaging';
+	import { sendMessage, subscribeToMessages, fetchRooms, fetchWords } from '../../lib/massaging';
 	import { formatTimestamp, parseMessage, removeHtmlTags } from '../../lib/utils';
 
 	import { page } from '$app/stores';
@@ -45,7 +45,9 @@
 	$: messages = $messageStore;
 	$: rooms = $roomStore;
 
-	onMount(async () => {});
+	onMount(async () => {
+		fetchWords();
+	});
 
 	interface RoomLookup {
 		[key: string]: string;

@@ -72,5 +72,6 @@ export async function fetchWords() {
         words[data.key] = data.url;
     });
 
+    console.log(`Received: ${Object.keys(words).length} words`);
     wordStore.set(words);
 }
