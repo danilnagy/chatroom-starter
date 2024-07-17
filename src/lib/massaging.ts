@@ -1,8 +1,9 @@
 import { db } from './firebase';
-import { collection, addDoc, query, orderBy, onSnapshot, getDocs } from 'firebase/firestore';
+
+import { collection, addDoc, getDocs, query, orderBy, onSnapshot } from 'firebase/firestore';
 
 import { type Message } from './messageStore';
-import { type Room } from './roomStore';
+import roomStore, { type Room } from './roomStore';
 import wordStore from './wordStore';
 
 export async function sendMessage(roomId: string, user: string, content: string): Promise<void> {
@@ -33,6 +34,20 @@ export async function createRoom(name: string): Promise<string> {
         timestamp: Date.now()
     });
     return roomDoc.id;
+}
+
+export async function fetchRooms() {
+    const roomsRef = collection(db, 'rooms');
+    const roomsSnapshot = await getDocs(roomsRef);
+
+    const rooms: Room[] = [];
+
+    roomsSnapshot.forEach((doc) => {
+        rooms.push({ ...doc.data() as Room, id: doc.id });
+    });
+
+    console.log(`Received: ${rooms.length} rooms`);
+    roomStore.set(rooms);
 }
 
 export function subscribeToRooms(callback: (rooms: Room[]) => void): void {

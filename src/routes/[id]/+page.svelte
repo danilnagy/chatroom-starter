@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+
 	import { sendMessage, subscribeToMessages, fetchWords } from '../../lib/massaging';
 	import { formatTimestamp, parseMessage, removeHtmlTags } from '../../lib/utils';
 
@@ -37,19 +38,14 @@
 		subscribeToMessages(chatroomId, (newMessages) => {
 			messageStore.set(newMessages);
 		});
+		fetchRooms();
 	}
 
 	$: user = $userStore;
 	$: messages = $messageStore;
 	$: rooms = $roomStore;
 
-	onMount(async () => {
-		if (user) {
-			subscribeToMessages(chatroomId, (newMessages) => {
-				messageStore.set(newMessages);
-			});
-		}
-	});
+	onMount(async () => {});
 
 	interface RoomLookup {
 		[key: string]: string;
