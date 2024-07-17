@@ -1,30 +1,44 @@
 <script lang="ts">
-	import { sendMessage } from '../lib/massaging';
+	import { createRoom } from '../lib/massaging';
+
 	import userStore from '../lib/userStore';
-	import messageStore from '../lib/messageStore';
+	import roomStore from '../lib/roomStore';
 
-	let message: string = '';
+	let newRoomName: string = '';
 
-	async function handleSendMessage() {
-		await sendMessage(user?.email || 'Anonymous', message);
-		message = '';
+	async function handleCreateRoom() {
+		if (newRoomName.trim()) {
+			await createRoom(newRoomName);
+			newRoomName = '';
+		}
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Enter') {
+			// Prevent default behavior (new line) and submit the form
+			event.preventDefault();
+			handleCreateRoom();
+		}
 	}
 
 	$: user = $userStore;
-	$: messages = $messageStore;
+	$: rooms = $roomStore;
 </script>
 
-<div class="container">
+<div>
 	{#if user}
-		<div class="messages">
-			{#each messages as message (message.timestamp)}
-				<div><strong>{message.from}</strong>: {message.content}</div>
-			{/each}
+		<div class="container">
+			<h2>Rooms</h2>
+			<ul>
+				{#each rooms as room}
+					<li><a href={`/${room.id}`}>{room.name}</a></li>
+				{/each}
+			</ul>
+			<div class="row">
+				<input bind:value={newRoomName} placeholder="New room name" on:keydown={handleKeydown} />
+				<button on:click={handleCreateRoom}>New room</button>
+			</div>
 		</div>
-		<form on:submit|preventDefault={handleSendMessage}>
-			<textarea bind:value={message} placeholder="Type a message" required />
-			<button type="submit">Send</button>
-		</form>
 	{/if}
 </div>
 
@@ -32,7 +46,6 @@
 	.container {
 		background-color: white;
 		margin: 1em;
-		padding: 1rem 0;
 		overflow: clip;
 
 		.messages {
@@ -41,18 +54,13 @@
 			gap: 0.5rem;
 		}
 	}
-	form {
-		padding-top: 2rem;
+	.row {
+		display: flex;
+		gap: 1rem;
+	}
+	ul {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-
-		textarea {
-			padding: 0.5rem;
-		}
-
-		button {
-			align-self: center;
-		}
+		gap: 0.5rem;
 	}
 </style>
