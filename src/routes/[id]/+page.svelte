@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { sendMessage, subscribeToMessages } from '../../lib/massaging';
-	import { formatTimestamp } from '../../lib/utils';
+	import { sendMessage, subscribeToMessages, fetchWords } from '../../lib/massaging';
+	import { formatTimestamp, parseMessage, removeHtmlTags } from '../../lib/utils';
 
 	import { page } from '$app/stores';
 	import userStore from '../../lib/userStore';
@@ -11,7 +11,8 @@
 	let message: string = '';
 
 	async function handleSendMessage() {
-		await sendMessage(chatroomId, user?.email || 'Anonymous', message);
+		const cleanedMessage = removeHtmlTags(message);
+		await sendMessage(chatroomId, user?.email || 'Anonymous', cleanedMessage);
 		message = '';
 	}
 
@@ -28,7 +29,8 @@
 		}
 	}
 
-	onMount(() => {
+	onMount(async () => {
+		await fetchWords(); // Fetch words when the component is mounted
 		subscribeToMessages(chatroomId, (newMessages) => {
 			messageStore.set(newMessages);
 		});
@@ -60,7 +62,9 @@
 			<div class="messages">
 				{#each messages as message (message.timestamp)}
 					<div>
-						<strong>{message.from}</strong> <em>({formatTimestamp(message.timestamp)})</em>: {message.content}
+						<strong>{message.from}</strong> <em>({formatTimestamp(message.timestamp)})</em>: {@html parseMessage(
+							message.content
+						)}
 					</div>
 				{/each}
 			</div>
