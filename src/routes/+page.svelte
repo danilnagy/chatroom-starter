@@ -27,7 +27,7 @@
 
 	// Reactive statement that runs when `user` is set
 	$: if (user) {
-		console.log(`Subscribing user: ${user.email} to Room list`);
+		console.log(`Subscribing User: ${user.email} to Room list`);
 		subscribeToRooms((newRooms: Room[]) => {
 			roomStore.set(newRooms);
 		});
@@ -36,13 +36,7 @@
 	$: user = $userStore;
 	$: rooms = $roomStore;
 
-	onMount(async () => {
-		if (user) {
-			subscribeToRooms((newRooms: Room[]) => {
-				roomStore.set(newRooms);
-			});
-		}
-	});
+	onMount(async () => {});
 </script>
 
 <div>

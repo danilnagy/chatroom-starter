@@ -44,7 +44,6 @@ export async function fetchRooms() {
     });
 
     console.log(`Received: ${rooms.length} rooms`);
-
     roomStore.set(rooms);
 }
 

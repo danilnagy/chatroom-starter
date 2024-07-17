@@ -44,14 +44,7 @@
 	$: messages = $messageStore;
 	$: rooms = $roomStore;
 
-	onMount(async () => {
-		if (user) {
-			subscribeToMessages(chatroomId, (newMessages) => {
-				messageStore.set(newMessages);
-			});
-			fetchRooms();
-		}
-	});
+	onMount(async () => {});
 
 	interface RoomLookup {
 		[key: string]: string;
