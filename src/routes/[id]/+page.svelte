@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { sendMessage, subscribeToMessages } from '../../lib/massaging';
+
+	import { sendMessage, subscribeToMessages, fetchRooms } from '../../lib/massaging';
 	import { formatTimestamp } from '../../lib/utils';
 
 	import { page } from '$app/stores';
@@ -36,6 +37,7 @@
 		subscribeToMessages(chatroomId, (newMessages) => {
 			messageStore.set(newMessages);
 		});
+		fetchRooms();
 	}
 
 	$: user = $userStore;
@@ -47,6 +49,7 @@
 			subscribeToMessages(chatroomId, (newMessages) => {
 				messageStore.set(newMessages);
 			});
+			fetchRooms();
 		}
 	});
 
