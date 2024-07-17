@@ -35,11 +35,12 @@
 
 	// Reactive statement that runs when `user` is set
 	$: if (user) {
+		fetchRooms();
+		fetchWords();
 		console.log(`Subscribing User: ${user.email} to messages from Room: ${chatroomId}`);
 		subscribeToMessages(chatroomId, (newMessages) => {
 			messageStore.set(newMessages);
 		});
-		fetchRooms();
 	}
 
 	$: user = $userStore;
@@ -47,9 +48,7 @@
 	$: rooms = $roomStore;
 	$: words = $wordStore;
 
-	onMount(async () => {
-		fetchWords();
-	});
+	onMount(async () => {});
 
 	interface RoomLookup {
 		[key: string]: string;
@@ -67,7 +66,7 @@
 	<div class="container">
 		<a href="/">{`Back`}</a>
 	</div>
-	{#if user}
+	{#if user && rooms.length > 0}
 		<div class="container">
 			<h2>{roomLookup[chatroomId]}</h2>
 			<div class="messages">
