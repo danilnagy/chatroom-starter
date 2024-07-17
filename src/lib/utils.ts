@@ -40,4 +40,11 @@ export function removeHtmlTags(input: string): string {
     const div = document.createElement('div');
     div.innerHTML = input;
     return div.textContent || div.innerText || '';
+
+export function reloadPage(delay: number = 2000) {
+    if (typeof window !== 'undefined') {
+        setTimeout(() => {
+            window.location.reload();
+        }, delay);
+    }
 }
