@@ -38,7 +38,7 @@ export function removeHtmlTags(input: string): string {
     return div.textContent || div.innerText || '';
 }
 
-export function reloadPage(delay: number = 2000) {
+export function reloadPage(delay: number = 0) {
     if (typeof window !== 'undefined') {
         setTimeout(() => {
             window.location.reload();
