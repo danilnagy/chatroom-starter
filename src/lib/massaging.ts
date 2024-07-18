@@ -1,7 +1,10 @@
 import { db } from './firebase';
+
 import { collection, addDoc, getDocs, query, orderBy, onSnapshot } from 'firebase/firestore';
+
 import { type Message } from './messageStore';
 import roomStore, { type Room } from './roomStore';
+import wordStore from './wordStore';
 
 export async function sendMessage(roomId: string, user: string, content: string): Promise<void> {
     const messagesRef = collection(db, `rooms/${roomId}/messages`);
@@ -57,4 +60,18 @@ export function subscribeToRooms(callback: (rooms: Room[]) => void): void {
         });
         callback(rooms);
     });
+}
+
+export async function fetchWords() {
+    const wordsRef = collection(db, 'words');
+    const wordsSnapshot = await getDocs(wordsRef);
+    const words: { [key: string]: string } = {};
+
+    wordsSnapshot.forEach((doc) => {
+        const data = doc.data();
+        words[data.key] = data.url;
+    });
+
+    console.log(`Received: ${Object.keys(words).length} words`);
+    wordStore.set(words);
 }

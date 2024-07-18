@@ -1,18 +1,20 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { sendMessage, subscribeToMessages, fetchRooms } from '../../lib/massaging';
-	import { formatTimestamp } from '../../lib/utils';
+	import { sendMessage, subscribeToMessages, fetchRooms, fetchWords } from '../../lib/massaging';
+	import { formatTimestamp, parseMessage, removeHtmlTags } from '../../lib/utils';
 
 	import { page } from '$app/stores';
 	import userStore, { type User } from '../../lib/userStore';
 	import roomStore from '../../lib/roomStore';
 	import messageStore from '../../lib/messageStore';
+	import wordStore from '../../lib/wordStore';
 
 	let message: string = '';
 
 	async function handleSendMessage() {
-		await sendMessage(chatroomId, user?.email || 'Anonymous', message);
+		const cleanedMessage = removeHtmlTags(message);
+		await sendMessage(chatroomId, user?.email || 'Anonymous', cleanedMessage);
 		message = '';
 	}
 
@@ -33,16 +35,18 @@
 
 	// Reactive statement that runs when `user` is set
 	$: if (user) {
+		fetchRooms();
+		fetchWords();
 		console.log(`Subscribing User: ${user.email} to messages from Room: ${chatroomId}`);
 		subscribeToMessages(chatroomId, (newMessages) => {
 			messageStore.set(newMessages);
 		});
-		fetchRooms();
 	}
 
 	$: user = $userStore;
 	$: messages = $messageStore;
 	$: rooms = $roomStore;
+	$: words = $wordStore;
 
 	onMount(async () => {});
 
@@ -62,13 +66,16 @@
 	<div class="container">
 		<a href="/">{`Back`}</a>
 	</div>
-	{#if user}
+	{#if user && rooms.length > 0}
 		<div class="container">
 			<h2>{roomLookup[chatroomId]}</h2>
 			<div class="messages">
 				{#each messages as message (message.timestamp)}
 					<div>
-						<strong>{message.from}</strong> <em>({formatTimestamp(message.timestamp)})</em>: {message.content}
+						<strong>{message.from}</strong> <em>({formatTimestamp(message.timestamp)})</em>: {@html parseMessage(
+							message.content,
+							words
+						)}
 					</div>
 				{/each}
 			</div>

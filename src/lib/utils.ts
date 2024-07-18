@@ -1,3 +1,15 @@
+export function parseMessage(content: string, words: { [s: string]: string; }): string {
+    let parsedContent = content;
+
+    for (const [phrase, url] of Object.entries(words)) {
+        // Use a case-insensitive regular expression
+        const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
+        parsedContent = parsedContent.replace(regex, `<a href="${url}" target="_blank">${phrase}</a>`);
+    }
+
+    return parsedContent;
+}
+
 export function formatTimestamp(timestamp: number): string {
     const date = new Date(timestamp);
     const year = date.getFullYear();
