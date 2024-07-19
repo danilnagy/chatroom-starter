@@ -69,7 +69,8 @@ onAuthStateChanged(auth, async (user) => {
 
     const newLookup: UserLookup = {};
     newLookup[user.uid] = {
-      userName: isUser(userData) && userData.userName ? userData.userName : ''
+      // userName: isUser(userData) && userData.userName ? userData.userName : ''
+      userName: 'You'
     };
 
     if (isUser(userData)) {
@@ -83,5 +84,6 @@ onAuthStateChanged(auth, async (user) => {
 
   } else {
     userStore.set(null);
+    usersStore.set({})
   }
 });
