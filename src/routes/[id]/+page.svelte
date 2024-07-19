@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { sendMessage, subscribeToMessages, fetchRooms, fetchWords } from '../../lib/massaging';
+	import { sendMessage, subscribeToMessages, fetchWords } from '../../lib/massaging';
 	import { formatTimestamp, parseMessage, removeHtmlTags } from '../../lib/utils';
 
 	import { page } from '$app/stores';
@@ -35,7 +35,7 @@
 
 	// Reactive statement that runs when `user` is set
 	$: if (user) {
-		fetchRooms();
+		// fetchRooms();
 		fetchWords();
 		console.log(`Subscribing User: ${user.email} to messages from Room: ${chatroomId}`);
 		subscribeToMessages(chatroomId, (newMessages) => {
@@ -45,19 +45,19 @@
 
 	$: user = $userStore;
 	$: messages = $messageStore;
-	$: rooms = $roomStore;
+	// $: rooms = $roomStore;
 	$: words = $wordStore;
 
 	onMount(async () => {});
 
-	interface RoomLookup {
-		[key: string]: string;
-	}
+	// interface RoomLookup {
+	// 	[key: string]: string;
+	// }
 
-	$: roomLookup = rooms.reduce((lookup, room) => {
-		lookup[room.id] = room.name;
-		return lookup;
-	}, {} as RoomLookup);
+	// $: roomLookup = rooms.reduce((lookup, room) => {
+	// 	lookup[room.id] = room.name;
+	// 	return lookup;
+	// }, {} as RoomLookup);
 
 	const { id: chatroomId } = $page.params;
 </script>
@@ -66,9 +66,9 @@
 	<div class="container">
 		<a href="/">{`Back`}</a>
 	</div>
-	{#if user && rooms.length > 0}
+	{#if user}
 		<div class="container">
-			<h2>{roomLookup[chatroomId]}</h2>
+			<!-- <h2>{roomLookup[chatroomId]}</h2> -->
 			<div class="messages">
 				{#each messages as message (message.timestamp)}
 					<div>

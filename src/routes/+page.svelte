@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import {
+		clearRoom,
 		createRoom,
-		fetchSingleRoom,
+		fetchRoom,
 		fetchWords,
 		sendMessage,
 		setUserCount,
-		subscribeToMessages,
 		incrementUserCount
 	} from '../lib/massaging';
 	import { updateUserChatroom } from '../lib/auth';
@@ -17,36 +17,36 @@
 	import messageStore from '../lib/messageStore';
 	import wordStore from '../lib/wordStore';
 
-	// let newRoomName: string = '';
 	let message: string = '';
-	let chatting: boolean = false;
 
+	// already member
 	async function handleSendMessage() {
-		if (user) {
+		if (user && room) {
+			if (room.userCount < 2) await clearRoom(room.id);
+
 			const cleanedMessage = removeHtmlTags(message);
-			await sendMessage(rooms[0].id, user?.email || 'Anonymous', cleanedMessage);
+			await sendMessage(room.id, user.email || 'Anonymous', cleanedMessage);
 			message = '';
 		}
 	}
 
+	// joining room
 	async function handleReplyMessage() {
-		if (user) {
-			await updateUserChatroom(user?.uid, rooms[0].id);
-			await incrementUserCount(rooms[0].id);
-			chatting = true;
+		if (user && room) {
+			await updateUserChatroom(user, room.id);
+			await incrementUserCount(room.id);
 
 			const cleanedMessage = removeHtmlTags(message);
-			await sendMessage(rooms[0].id, user?.email || 'Anonymous', cleanedMessage);
+			await sendMessage(room.id, user.email || 'Anonymous', cleanedMessage);
 			message = '';
 		}
 	}
 
 	async function handleLeaveRoom() {
-		if (user) {
-			await updateUserChatroom(user?.uid, '');
-			await setUserCount(rooms[0].id, 0);
-			chatting = false;
-			message = '';
+		if (user && room) {
+			await updateUserChatroom(user, '');
+			await setUserCount(room.id, 0);
+
 			reloadPage();
 		}
 	}
@@ -54,56 +54,44 @@
 	async function handleCreateRoom() {
 		if (user) {
 			const newRoomId = await createRoom('');
-			await updateUserChatroom(user?.uid, newRoomId);
+			await updateUserChatroom(user, newRoomId);
 
 			const cleanedMessage = removeHtmlTags(message);
-			await sendMessage(newRoomId, user?.email || 'Anonymous', cleanedMessage);
-
-			reloadPage();
+			await sendMessage(newRoomId, user.email || 'Anonymous', cleanedMessage);
+			message = '';
 		}
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.key === 'Enter') {
+			event.preventDefault();
 			if (event.shiftKey) {
 				// Create a new line
 				message += '\n';
 			} else {
 				// Prevent default behavior (new line) and submit the form
-				event.preventDefault();
-				handleReplyMessage();
+				if (chatting) handleSendMessage();
+				else handleCreateRoom();
 			}
 		}
 	}
 
-	let user: User | null;
+	// let user: User | null;
 
 	// Reactive statement that runs when `user` is set
-	$: if (user) {
+	$: if (user?.uid) {
 		fetchWords();
-
-		if (user.currentRoomId) {
-			roomStore.set([{ id: user.currentRoomId, name: '', timestamp: 0 }]);
-
-			console.log(`Subscribing User: ${user.email} to Room: ${user.currentRoomId}`);
-			subscribeToMessages(user.currentRoomId, (newMessages) => {
-				console.log('newMessages', newMessages);
-				messageStore.set(newMessages);
-			});
-			chatting = true;
-		} else {
-			fetchSingleRoom(user, (newMessages) => {
-				messageStore.set(newMessages);
-			});
-		}
+		fetchRoom(user);
 	}
 
 	$: user = $userStore;
-	$: rooms = $roomStore;
+	$: room = $roomStore;
 	$: messages = $messageStore;
 	$: words = $wordStore;
 
 	$: lastMessages = messages.length > 0 ? [messages[messages.length - 1]] : [];
+
+	$: chatting = user?.currentRoomId === room?.id;
 
 	onMount(async () => {});
 </script>
@@ -111,9 +99,6 @@
 <div>
 	{#if user}
 		<div class="container">
-			{#if messages.length === 0}
-				<p>No rooms to join</p>
-			{/if}
 			<div class="messages">
 				{#each chatting ? messages : lastMessages as message (message.timestamp)}
 					<div>
@@ -137,9 +122,9 @@
 						<button on:click|preventDefault={handleLeaveRoom}>Leave</button>
 					{:else}
 						{#if messages.length > 0}
-							<button on:click|preventDefault={handleReplyMessage}>Reply</button>
+							<button on:click|preventDefault={handleReplyMessage}>Join</button>
 						{/if}
-						<button on:click|preventDefault={handleCreateRoom}>New</button>
+						<button on:click|preventDefault={handleCreateRoom}>Start</button>
 					{/if}
 				</div>
 			</form>
@@ -150,7 +135,7 @@
 <style lang="scss">
 	.container {
 		background-color: white;
-		margin: 1em;
+		margin: 2rem 1rem;
 		overflow: clip;
 
 		.messages {

@@ -4,8 +4,10 @@ export interface Room {
     id: string;
     name: string;
     timestamp: number;
+    userCount: number;
+    exposeCount: number;
 }
 
-const roomStore = writable<Room[]>([]);
+const roomStore = writable<Room | undefined>(undefined);
 
 export default roomStore;

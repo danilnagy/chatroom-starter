@@ -39,14 +39,15 @@ export async function getUserData(uid: string): Promise<User | null> {
   }
 }
 
-export async function updateUserChatroom(uid: string, roomId: string): Promise<void> {
-  const userRef = doc(db, 'users', uid);
+export async function updateUserChatroom(user: User, roomId: string): Promise<void> {
+  const userRef = doc(db, 'users', user.uid);
 
   try {
-    await setDoc(userRef, { uid, currentRoomId: roomId }, { merge: true });
-    console.log(`Updated currentRoomId for user ${uid} to ${roomId}`);
+    await setDoc(userRef, { uid: user.uid, currentRoomId: roomId }, { merge: true });
+    userStore.set({ ...user, currentRoomId: roomId })
+    console.log(`Updated currentRoomId for user ${user.uid} to ${roomId}`);
   } catch (error) {
-    console.error(`Failed to update currentRoomId for user ${uid}:`, error);
+    console.error(`Failed to update currentRoomId for user ${user.uid}:`, error);
   }
 }
 
@@ -54,7 +55,6 @@ export async function updateUserChatroom(uid: string, roomId: string): Promise<v
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     const userData: User | {} = await getUserData(user.uid) || {}
-    console.log("userData", userData);
     userStore.set({
       email: user.email!,
       uid: user.uid,

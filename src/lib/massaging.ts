@@ -1,30 +1,52 @@
 import { db } from './firebase';
+import { collection, addDoc, doc, getDocs, increment, limit, query, where, orderBy, onSnapshot, updateDoc, writeBatch } from 'firebase/firestore';
 
-import { collection, addDoc, doc, getDocs, increment, limit, query, where, orderBy, onSnapshot, updateDoc } from 'firebase/firestore';
+import { updateUserChatroom } from '../lib/auth';
+import { reloadPage } from '../lib/utils';
 
-import { type Message } from './messageStore';
+import messageStore, { type Message } from './messageStore';
 import roomStore, { type Room } from './roomStore';
 import wordStore from './wordStore';
 import { type User } from './userStore';
 
-export async function sendMessage(roomId: string, user: string, content: string): Promise<void> {
-    const messagesRef = collection(db, `rooms/${roomId}/messages`);
-    await addDoc(messagesRef, {
-        from: user,
-        content,
-        timestamp: Date.now()
+export function subscribeToRoom(roomId: string, callback: (room: Room) => void): void {
+    const roomRef = doc(db, 'rooms', roomId);
+
+    const unsubscribe = onSnapshot(roomRef, (doc) => {
+        if (doc.exists()) {
+            const data = doc.data();
+            if (data) {
+                callback({ ...doc.data() as Room, id: doc.id } as Room);
+            }
+        }
     });
 }
 
 export function subscribeToMessages(roomId: string, callback: (messages: Message[]) => void): void {
     const messagesRef = collection(db, `rooms/${roomId}/messages`);
     const q = query(messagesRef, orderBy('timestamp'));
-    onSnapshot(q, (snapshot) => {
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
         const messages: Message[] = [];
         snapshot.forEach((doc) => {
             messages.push(doc.data() as Message);
         });
         callback(messages);
+    });
+}
+
+export async function subscribeAll(user: User, roomId: string) {
+    subscribeToRoom(roomId, async (roomData) => {
+        console.log('-> Incoming [roomData]: ', roomData);
+        if (roomData.userCount === 0) {
+            await updateUserChatroom(user, "");
+            reloadPage();
+        }
+        roomStore.set(roomData);
+    });
+    subscribeToMessages(roomId, (messageData) => {
+        console.log('-> Incoming [messageData]: ', messageData);
+        messageStore.set(messageData);
     });
 }
 
@@ -39,18 +61,21 @@ export async function createRoom(name: string): Promise<string> {
     return roomDoc.id;
 }
 
-export async function fetchRooms() {
-    const roomsRef = collection(db, 'rooms');
-    const roomsSnapshot = await getDocs(roomsRef);
+export async function clearRoom(roomId: string): Promise<void> {
+    const batch = writeBatch(db);
+    const messagesRef = collection(db, `rooms/${roomId}/messages`);
+    const querySnapshot = await getDocs(messagesRef);
 
-    const rooms: Room[] = [];
-
-    roomsSnapshot.forEach((doc) => {
-        rooms.push({ ...doc.data() as Room, id: doc.id });
+    querySnapshot.forEach((doc) => {
+        batch.delete(doc.ref);
     });
 
-    console.log(`Received: ${rooms.length} rooms`);
-    roomStore.set(rooms);
+    try {
+        await batch.commit();
+        console.log(`All messages in room ${roomId} have been cleared.`);
+    } catch (error) {
+        console.error(`Failed to clear messages in room ${roomId}:`, error);
+    }
 }
 
 export async function incrementExposeCount(roomId: string): Promise<void> {
@@ -92,7 +117,22 @@ export async function setUserCount(roomId: string, userCount: number): Promise<v
     }
 }
 
-export async function fetchSingleRoom(user: User, callback: (messages: Message[]) => void) {
+export async function fetchRoom(user: User) {
+
+    if (user.currentRoomId) {
+        console.log(`Subscribing User: ${user.email} to existing Room: ${user.currentRoomId}`);
+        subscribeAll(user, user.currentRoomId);
+    } else {
+        const room = await fetchSingleRoom(user)
+        if (room) {
+            console.log(`Subscribing User: ${user.email} to new Room: ${user.currentRoomId}`);
+            subscribeAll(user, room.id);
+        }
+    }
+
+}
+
+export async function fetchSingleRoom(user: User) {
     const q = query(
         collection(db, 'rooms'),
         where('userCount', '==', 1),
@@ -108,28 +148,15 @@ export async function fetchSingleRoom(user: User, callback: (messages: Message[]
         rooms.push({ ...doc.data() as Room, id: doc.id });
     });
 
-    roomStore.set(rooms);
-
-    if (rooms.length > 0) {
-        const room = rooms[0];
-        await incrementExposeCount(room.id);
-
-        console.log(`Subscribing User: ${user.email} to Room:  ${room.id}`);
-        subscribeToMessages(room.id, (newMessages) => {
-            callback(newMessages);
-        });
-    }
+    return rooms[0];
 }
 
-export function subscribeToRooms(callback: (rooms: Room[]) => void): void {
-    const roomsRef = collection(db, 'rooms');
-    const q = query(roomsRef, orderBy('timestamp'));
-    onSnapshot(q, (snapshot) => {
-        const rooms: Room[] = [];
-        snapshot.forEach((doc) => {
-            rooms.push({ ...doc.data() as Room, id: doc.id });
-        });
-        callback(rooms);
+export async function sendMessage(roomId: string, user: string, content: string): Promise<void> {
+    const messagesRef = collection(db, `rooms/${roomId}/messages`);
+    await addDoc(messagesRef, {
+        from: user,
+        content,
+        timestamp: Date.now()
     });
 }
 
