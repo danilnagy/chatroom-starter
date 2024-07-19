@@ -111,19 +111,21 @@
 <div>
 	{#if user}
 		<div class="container">
-			<div class="messages">
+			<table class="messages">
 				{#each chatting ? messages : lastMessages as message (message.timestamp)}
-					<div class={message.uid === user.uid ? 'grey' : ''}>
-						<strong
-							>{users[message.uid]?.userName ? users[message.uid].userName : message.from}
-						</strong>
-						<em>({formatTimestamp(message.timestamp)})</em>: {@html parseMessage(
-							message.content,
-							words
-						)}
-					</div>
+					<tr class={message.uid === user.uid ? 'grey' : ''}>
+						<td>
+							<strong
+								>{users[message.uid]?.userName ? users[message.uid].userName : message.uid}
+							</strong>
+							<em>({formatTimestamp(message.timestamp)})</em>
+						</td>
+						<td>
+							{@html parseMessage(message.content, words)}
+						</td>
+					</tr>
 				{/each}
-			</div>
+			</table>
 			<form>
 				<textarea
 					bind:value={message}
@@ -148,27 +150,19 @@
 </div>
 
 <style lang="scss">
+	table {
+		tr {
+			td {
+				padding: 0.5rem 1rem 0.5rem 0;
+			}
+		}
+	}
 	.container {
 		background-color: white;
 		padding: 2rem 0;
 		overflow: clip;
 		max-width: 800px;
 		margin: 0 auto;
-
-		.messages {
-			display: flex;
-			flex-direction: column;
-			gap: 0.5rem;
-		}
-	}
-	.row {
-		display: flex;
-		gap: 1rem;
-	}
-	ul {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
 	}
 	form {
 		padding-top: 2rem;
