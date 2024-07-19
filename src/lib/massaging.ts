@@ -4,24 +4,27 @@ import { collection, addDoc, doc, getDoc, getDocs, increment, limit, query, wher
 import { updateUserChatroom } from '../lib/auth';
 import { reloadPage } from '../lib/utils';
 
+import { get } from 'svelte/store';
 import messageStore, { type Message } from './messageStore';
 import roomStore, { type Room } from './roomStore';
 import wordStore from './wordStore';
 import { type User } from './userStore';
 import usersStore, { type ReducedUser, type UserLookup } from './usersStore';
 
-async function fetchUserNames(userIds: string[]): Promise<ReducedUser[]> {
+async function fetchUserNames(userIds: string[]): Promise<void> {
     const newUsers: ReducedUser[] = [];
     const newLookup: UserLookup = {};
 
     for (const uid of userIds) {
         const userRef = doc(db, 'users', uid);
+
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
             const userData = userSnap.data();
             if (userData && userData.userName) {
                 const newUser: ReducedUser = { userName: userData.userName }
+                console.log(`Got data for new User: ${uid} - ${newUser.userName}`)
                 newUsers.push(newUser);
                 newLookup[uid] = newUser;
             }
@@ -34,17 +37,13 @@ async function fetchUserNames(userIds: string[]): Promise<ReducedUser[]> {
             ...newLookup
         };
     });
-
-    console.log(`Found users: ${newUsers}`)
-
-    return newUsers;
 }
 
 function getUniqueUIDs(messages: { uid: string;[key: string]: any }[]): string[] {
     const uidSet = new Set<string>();
 
     messages.forEach(message => {
-        if (message.uid) {
+        if (message.uid && !Object.keys(get(usersStore)).includes(message.uid)) {
             uidSet.add(message.uid);
         }
     });
@@ -91,7 +90,9 @@ export async function subscribeAll(user: User, roomId: string) {
         console.log('-> Incoming [messageData]: ', messageData);
 
         // process incoming messages
-        const newUsers = fetchUserNames(getUniqueUIDs(messageData));
+        const uniqueIds = getUniqueUIDs(messageData);
+        if (uniqueIds.length > 0)
+            fetchUserNames(uniqueIds);
 
         messageStore.set(messageData);
     });

@@ -20,6 +20,14 @@
 
 	let message: string = '';
 
+	function trackPageClick(text: string) {
+		if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+			window.gtag('event', 'click', {
+				text
+			});
+		}
+	}
+
 	// already member
 	async function handleSendMessage() {
 		if (user && room) {
@@ -27,6 +35,7 @@
 
 			const cleanedMessage = removeHtmlTags(message);
 			await sendMessage(room.id, user, cleanedMessage);
+			trackPageClick(cleanedMessage);
 			message = '';
 		}
 	}
@@ -39,6 +48,7 @@
 
 			const cleanedMessage = removeHtmlTags(message);
 			await sendMessage(room.id, user, cleanedMessage);
+			trackPageClick(cleanedMessage);
 			message = '';
 		}
 	}
