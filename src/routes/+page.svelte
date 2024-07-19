@@ -12,8 +12,9 @@
 	import { updateUserChatroom } from '../lib/auth';
 	import { formatTimestamp, parseMessage, removeHtmlTags, reloadPage } from '../lib/utils';
 
-	import userStore, { type User } from '../lib/userStore';
-	import roomStore, { type Room } from '../lib/roomStore';
+	import userStore from '../lib/userStore';
+	import usersStore from '../lib/usersStore';
+	import roomStore from '../lib/roomStore';
 	import messageStore from '../lib/messageStore';
 	import wordStore from '../lib/wordStore';
 
@@ -25,7 +26,7 @@
 			if (room.userCount < 2) await clearRoom(room.id);
 
 			const cleanedMessage = removeHtmlTags(message);
-			await sendMessage(room.id, user.email || 'Anonymous', cleanedMessage);
+			await sendMessage(room.id, user, cleanedMessage);
 			message = '';
 		}
 	}
@@ -37,7 +38,7 @@
 			await incrementUserCount(room.id);
 
 			const cleanedMessage = removeHtmlTags(message);
-			await sendMessage(room.id, user.email || 'Anonymous', cleanedMessage);
+			await sendMessage(room.id, user, cleanedMessage);
 			message = '';
 		}
 	}
@@ -57,7 +58,7 @@
 			await updateUserChatroom(user, newRoomId);
 
 			const cleanedMessage = removeHtmlTags(message);
-			await sendMessage(newRoomId, user.email || 'Anonymous', cleanedMessage);
+			await sendMessage(newRoomId, user, cleanedMessage);
 			message = '';
 		}
 	}
@@ -85,6 +86,7 @@
 	}
 
 	$: user = $userStore;
+	$: users = $usersStore;
 	$: room = $roomStore;
 	$: messages = $messageStore;
 	$: words = $wordStore;
@@ -102,7 +104,10 @@
 			<div class="messages">
 				{#each chatting ? messages : lastMessages as message (message.timestamp)}
 					<div>
-						<strong>{message.from}</strong> <em>({formatTimestamp(message.timestamp)})</em>: {@html parseMessage(
+						<strong
+							>{users[message.uid]?.userName ? users[message.uid].userName : message.from}
+						</strong>
+						<em>({formatTimestamp(message.timestamp)})</em>: {@html parseMessage(
 							message.content,
 							words
 						)}

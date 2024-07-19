@@ -91,11 +91,11 @@
 
 <style>
 	.wrapper {
-		margin: 1rem 2rem;
+		margin: 0 2rem;
 	}
 	.container {
 		background-color: white;
-		padding: 1rem 0;
+		padding: 2rem 0;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -118,7 +118,7 @@
 			flex-direction: column;
 		}
 		.wrapper {
-			margin: 1rem;
+			margin: 0 1rem;
 		}
 	}
 

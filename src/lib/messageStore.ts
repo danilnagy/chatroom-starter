@@ -1,7 +1,8 @@
 import { writable } from 'svelte/store';
 
 export interface Message {
-    from: string;
+    from: string; // user email
+    uid: string;
     content: string;
     timestamp: number;
 }

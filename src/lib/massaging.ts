@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, addDoc, doc, getDocs, increment, limit, query, where, orderBy, onSnapshot, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc, getDocs, increment, limit, query, where, orderBy, onSnapshot, updateDoc, writeBatch } from 'firebase/firestore';
 
 import { updateUserChatroom } from '../lib/auth';
 import { reloadPage } from '../lib/utils';
@@ -8,6 +8,49 @@ import messageStore, { type Message } from './messageStore';
 import roomStore, { type Room } from './roomStore';
 import wordStore from './wordStore';
 import { type User } from './userStore';
+import usersStore, { type ReducedUser, type UserLookup } from './usersStore';
+
+async function fetchUserNames(userIds: string[]): Promise<ReducedUser[]> {
+    const newUsers: ReducedUser[] = [];
+    const newLookup: UserLookup = {};
+
+    for (const uid of userIds) {
+        const userRef = doc(db, 'users', uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            if (userData && userData.userName) {
+                const newUser: ReducedUser = { userName: userData.userName }
+                newUsers.push(newUser);
+                newLookup[uid] = newUser;
+            }
+        }
+    }
+
+    usersStore.update(currentUsers => {
+        return {
+            ...currentUsers,
+            ...newLookup
+        };
+    });
+
+    console.log(`Found users: ${newUsers}`)
+
+    return newUsers;
+}
+
+function getUniqueUIDs(messages: { uid: string;[key: string]: any }[]): string[] {
+    const uidSet = new Set<string>();
+
+    messages.forEach(message => {
+        if (message.uid) {
+            uidSet.add(message.uid);
+        }
+    });
+
+    return Array.from(uidSet);
+}
 
 export function subscribeToRoom(roomId: string, callback: (room: Room) => void): void {
     const roomRef = doc(db, 'rooms', roomId);
@@ -46,6 +89,10 @@ export async function subscribeAll(user: User, roomId: string) {
     });
     subscribeToMessages(roomId, (messageData) => {
         console.log('-> Incoming [messageData]: ', messageData);
+
+        // process incoming messages
+        const newUsers = fetchUserNames(getUniqueUIDs(messageData));
+
         messageStore.set(messageData);
     });
 }
@@ -151,10 +198,11 @@ export async function fetchSingleRoom(user: User) {
     return rooms[0];
 }
 
-export async function sendMessage(roomId: string, user: string, content: string): Promise<void> {
+export async function sendMessage(roomId: string, user: User, content: string): Promise<void> {
     const messagesRef = collection(db, `rooms/${roomId}/messages`);
     await addDoc(messagesRef, {
-        from: user,
+        from: user.email,
+        uid: user.uid,
         content,
         timestamp: Date.now()
     });
