@@ -125,26 +125,31 @@
 						<!-- <td><em>({formatTimestamp(message.timestamp)})</em></td> -->
 					</tr>
 				{/each}
+				<tr>
+					<td class="grey"><strong>You</strong></td>
+					<td width="99%">
+						<form>
+							<textarea
+								bind:value={message}
+								placeholder="Type a message"
+								required
+								on:keydown={handleKeydown}
+							/>
+							<div class="buttonGroup">
+								{#if chatting}
+									<button class="primary" on:click|preventDefault={handleSendMessage}>Send</button>
+									<button class="secondary" on:click|preventDefault={handleLeaveRoom}>Leave</button>
+								{:else}
+									{#if messages.length > 0}
+										<button on:click|preventDefault={handleReplyMessage}>Join</button>
+									{/if}
+									<button class="primary" on:click|preventDefault={handleCreateRoom}>Start</button>
+								{/if}
+							</div>
+						</form>
+					</td>
+				</tr>
 			</table>
-			<form>
-				<textarea
-					bind:value={message}
-					placeholder="Type a message"
-					required
-					on:keydown={handleKeydown}
-				/>
-				<div class="buttonGroup">
-					{#if chatting}
-						<button on:click|preventDefault={handleSendMessage}>Send</button>
-						<button on:click|preventDefault={handleLeaveRoom}>Leave</button>
-					{:else}
-						{#if messages.length > 0}
-							<button on:click|preventDefault={handleReplyMessage}>Join</button>
-						{/if}
-						<button on:click|preventDefault={handleCreateRoom}>Start</button>
-					{/if}
-				</div>
-			</form>
 		</div>
 	{/if}
 </div>
@@ -173,22 +178,36 @@
 		margin: 0 auto;
 	}
 	form {
-		padding-top: 2rem;
+		// padding-top: 2rem;
+		width: 100%;
 		display: flex;
-		flex-direction: column;
 		gap: 1rem;
 
 		textarea {
-			padding: 0.5rem;
+			min-height: 150px;
+			flex-grow: 1;
+			padding: 0px;
+			border-radius: 0;
+			border: 0;
+			font-size: 1em;
+			resize: vertical; /* allows resizing only vertically */
+			outline: none; /* removes the default focus outline */
 		}
 
 		.buttonGroup {
-			align-self: center;
+			height: 100%;
 			display: flex;
-			gap: 1rem;
+			flex-direction: column;
+			gap: 0.5rem;
 		}
 	}
 	.grey {
 		color: #777777;
+	}
+
+	@media (max-width: 700px) {
+		form {
+			flex-direction: column;
+		}
 	}
 </style>
