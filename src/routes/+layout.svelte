@@ -114,6 +114,9 @@
 		display: flex;
 		gap: 1rem;
 	}
+	input {
+		max-width: 160px;
+	}
 
 	@media (max-width: 700px) {
 		.login-form {
