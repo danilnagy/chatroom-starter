@@ -118,11 +118,11 @@
 							<strong
 								>{users[message.uid]?.userName ? users[message.uid].userName : message.uid}
 							</strong>
-							<em>({formatTimestamp(message.timestamp)})</em>
 						</td>
-						<td>
+						<td width="99%">
 							{@html parseMessage(message.content, words)}
 						</td>
+						<!-- <td><em>({formatTimestamp(message.timestamp)})</em></td> -->
 					</tr>
 				{/each}
 			</table>
@@ -150,10 +150,18 @@
 </div>
 
 <style lang="scss">
+	em {
+		font-size: 0.75rem;
+		white-space: nowrap;
+	}
 	table {
 		tr {
 			td {
 				padding: 0.5rem 1rem 0.5rem 0;
+				vertical-align: top;
+			}
+			td:last-child {
+				padding-right: 0;
 			}
 		}
 	}
