@@ -152,6 +152,8 @@
 		background-color: white;
 		padding: 2rem 0;
 		overflow: clip;
+		max-width: 800px;
+		margin: 0 auto;
 
 		.messages {
 			display: flex;

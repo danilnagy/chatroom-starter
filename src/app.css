@@ -1,5 +1,5 @@
 :root {
-	--font-body: serif;
+	--font-body: 'Inter', sans-serif;
 	--font-mono: monospace;
 	--color-bg-0: rgb(202, 216, 228);
 	--color-bg-1: hsl(209, 36%, 86%);
@@ -20,7 +20,8 @@ body {
 h1,
 h2,
 p {
-	font-weight: 700;
+	font-size: 1rem;
+	font-weight: 600;
 	margin: 0;
 }
 
@@ -38,12 +39,12 @@ a:hover {
 }
 
 h1 {
-	font-size: 2rem;
+	/* font-size: 2rem; */
 	text-align: center;
 }
 
 h2 {
-	font-size: 1.5rem;
+	/* font-size: 1.5rem; */
 }
 
 pre {
