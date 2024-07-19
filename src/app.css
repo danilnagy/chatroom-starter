@@ -67,6 +67,7 @@ button {
 	font-size: inherit;
 	font-family: inherit;
 	cursor: pointer;
+	color: black;
 }
 
 button.primary {
