@@ -5,6 +5,7 @@ import { db } from './firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 import userStore, { type User } from './userStore';
+import usersStore, { type UserLookup } from './usersStore';
 
 export async function signUp(email: string, password: string): Promise<void> {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -51,6 +52,10 @@ export async function updateUserChatroom(user: User, roomId: string): Promise<vo
   }
 }
 
+function isUser(obj: any): obj is User {
+  return obj && typeof obj === 'object' && 'userName' in obj;
+}
+
 // Listen to authentication state changes
 onAuthStateChanged(auth, async (user) => {
   if (user) {
@@ -61,6 +66,21 @@ onAuthStateChanged(auth, async (user) => {
       currentRoomId: '',
       ...userData
     });
+
+    const newLookup: UserLookup = {};
+    newLookup[user.uid] = {
+      userName: isUser(userData) && userData.userName ? userData.userName : ''
+    };
+
+    if (isUser(userData)) {
+      usersStore.update(currentUsers => {
+        return {
+          ...currentUsers,
+          ...newLookup
+        };
+      });
+    }
+
   } else {
     userStore.set(null);
   }
