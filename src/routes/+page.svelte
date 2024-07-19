@@ -113,7 +113,7 @@
 		<div class="container">
 			<div class="messages">
 				{#each chatting ? messages : lastMessages as message (message.timestamp)}
-					<div>
+					<div class={message.uid === user.uid ? 'grey' : ''}>
 						<strong
 							>{users[message.uid]?.userName ? users[message.uid].userName : message.from}
 						</strong>
@@ -183,5 +183,8 @@
 			display: flex;
 			gap: 1rem;
 		}
+	}
+	.grey {
+		color: #777777;
 	}
 </style>
