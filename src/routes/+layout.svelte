@@ -57,7 +57,7 @@
 		<div><h2>tincann.ing</h2></div>
 		{#if user}
 			<div class="login-form">
-				<div>Welcome, {user.email}</div>
+				<div>Welcome, {user.userName || user.email}</div>
 				<button on:click={handleLogOut}>Log Out</button>
 			</div>
 		{:else}
