@@ -52,47 +52,79 @@
 	$: user = $userStore;
 </script>
 
-<div class="container">
-	{#if user}
-		<div class="login-form">
-			<div>Welcome, {user.email}</div>
-			<button on:click={handleLogOut}>Log Out</button>
-		</div>
-	{:else}
-		<div class="login-form">
-			<input
-				type="email"
-				bind:value={email}
-				placeholder="Email"
-				on:keyup={(event) => {
-					if (event.key === 'Enter') handleLogIn();
-				}}
-			/>
-			<input
-				type="password"
-				bind:value={password}
-				placeholder="Password"
-				on:keyup={(event) => {
-					if (event.key === 'Enter') handleLogIn();
-				}}
-			/>
-			<button on:click={handleLogIn}>Log In</button>
-			<button on:click={handleSignUp}>Sign Up</button>
-		</div>
-	{/if}
+<div class="wrapper">
+	<div class="container">
+		<div><h2>tincann.ing</h2></div>
+		{#if user}
+			<div class="login-form">
+				<div>Welcome, {user.email}</div>
+				<button on:click={handleLogOut}>Log Out</button>
+			</div>
+		{:else}
+			<div class="login-form">
+				<input
+					type="email"
+					bind:value={email}
+					placeholder="Email"
+					on:keyup={(event) => {
+						if (event.key === 'Enter') handleLogIn();
+					}}
+				/>
+				<input
+					type="password"
+					bind:value={password}
+					placeholder="Password"
+					on:keyup={(event) => {
+						if (event.key === 'Enter') handleLogIn();
+					}}
+				/>
+				<div class="button-group">
+					<button on:click={handleLogIn}>Log In</button>
+					<button on:click={handleSignUp}>Sign Up</button>
+				</div>
+			</div>
+		{/if}
+	</div>
+
+	<slot />
 </div>
 
-<slot />
-
 <style>
+	.wrapper {
+		margin: 1rem 2rem;
+	}
 	.container {
 		background-color: white;
-		margin: 1rem;
+		padding: 1rem 0;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 2rem;
+		border-bottom: 1px solid rgba(0, 0, 0, 0.8);
 	}
 	.login-form {
 		display: flex;
 		gap: 1rem;
 		flex-wrap: wrap;
 		align-items: center;
+	}
+	.button-group {
+		display: flex;
+		gap: 1rem;
+	}
+
+	@media (max-width: 700px) {
+		.login-form {
+			flex-direction: column;
+		}
+		.wrapper {
+			margin: 1rem;
+		}
+	}
+
+	@media (max-width: 900px) {
+		.container {
+			flex-direction: column;
+		}
 	}
 </style>

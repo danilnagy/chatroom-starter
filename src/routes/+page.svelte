@@ -135,7 +135,7 @@
 <style lang="scss">
 	.container {
 		background-color: white;
-		margin: 2rem 1rem;
+		padding: 2rem 0;
 		overflow: clip;
 
 		.messages {
