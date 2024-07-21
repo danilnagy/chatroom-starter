@@ -27,20 +27,21 @@ export async function getUserData(uid: string): Promise<User | null> {
     const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
       const userData = docSnap.data() as User;
+      await updateUserTimestamp(userData);
       return userData;
     } else {
       // Create a new user document if it does not exist
-      await setDoc(userRef, { uid, currentRoomId: '' });
+      await setDoc(userRef, { uid, currentRoomId: '', timestamp: Date.now() });
       console.log(`Created new user document for user ${uid}`);
-      return {} as User;
+      return { uid, currentRoomId: '', timestamp: Date.now() } as User;
     }
   } catch (error) {
-    console.error(`Failed to fetch chatroom for user ${uid}:`, error);
+    console.error(`Failed to fetch data for user ${uid}:`, error);
     return null;
   }
 }
 
-export async function updateUserChatroom(user: User, roomId: string): Promise<void> {
+export async function updateUserRoom(user: User, roomId: string): Promise<void> {
   const userRef = doc(db, 'users', user.uid);
 
   try {
@@ -49,6 +50,18 @@ export async function updateUserChatroom(user: User, roomId: string): Promise<vo
     console.log(`Updated currentRoomId for user ${user.uid} to ${roomId}`);
   } catch (error) {
     console.error(`Failed to update currentRoomId for user ${user.uid}:`, error);
+  }
+}
+
+export async function updateUserTimestamp(user: User): Promise<void> {
+  const userRef = doc(db, 'users', user.uid);
+
+  try {
+    await setDoc(userRef, { uid: user.uid, timestamp: Date.now() }, { merge: true });
+    userStore.set({ ...user, timestamp: Date.now() })
+    console.log(`Updated timestamp for user ${user.uid} to ${Date.now()}`);
+  } catch (error) {
+    console.error(`Failed to update timestamp for user ${user.uid}:`, error);
   }
 }
 
@@ -63,7 +76,6 @@ onAuthStateChanged(auth, async (user) => {
     userStore.set({
       email: user.email!,
       uid: user.uid,
-      currentRoomId: '',
       ...userData
     });
 

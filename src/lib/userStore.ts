@@ -4,7 +4,8 @@ export interface User {
     email: string;
     uid: string;
     userName?: string;
-    currentRoomId: string;
+    currentRoomId?: string;
+    timestamp?: number;
 }
 
 const userStore = writable<User | null>(null);

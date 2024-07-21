@@ -6,6 +6,7 @@ export interface Room {
     timestamp: number;
     userCount: number;
     exposeCount: number;
+    messageCount?: number;
 }
 
 const roomStore = writable<Room | undefined>(undefined);

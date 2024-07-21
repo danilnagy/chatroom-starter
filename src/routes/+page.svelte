@@ -7,9 +7,10 @@
 		fetchWords,
 		sendMessage,
 		setUserCount,
-		incrementUserCount
+		incrementUserCount,
+		incrementMessageCount
 	} from '../lib/massaging';
-	import { updateUserChatroom } from '../lib/auth';
+	import { updateUserRoom, updateUserTimestamp } from '../lib/auth';
 	import { formatTimestamp, parseMessage, removeHtmlTags, reloadPage } from '../lib/utils';
 
 	import userStore from '../lib/userStore';
@@ -34,8 +35,12 @@
 			if (room.userCount < 2) await clearRoom(room.id);
 
 			const cleanedMessage = removeHtmlTags(message);
-			await sendMessage(room.id, user, cleanedMessage);
-			trackPageClick(cleanedMessage);
+			if (cleanedMessage.length > 0) {
+				await sendMessage(room.id, user, cleanedMessage);
+				await incrementMessageCount(room.id);
+				await updateUserTimestamp(user);
+				trackPageClick(cleanedMessage);
+			}
 			message = '';
 		}
 	}
@@ -43,20 +48,25 @@
 	// joining room
 	async function handleReplyMessage() {
 		if (user && room) {
-			await updateUserChatroom(user, room.id);
-			await incrementUserCount(room.id);
-
 			const cleanedMessage = removeHtmlTags(message);
-			await sendMessage(room.id, user, cleanedMessage);
-			trackPageClick(cleanedMessage);
+			if (cleanedMessage.length > 0) {
+				await updateUserRoom(user, room.id);
+				await incrementUserCount(room.id);
+
+				await sendMessage(room.id, user, cleanedMessage);
+				await incrementMessageCount(room.id);
+				await updateUserTimestamp(user);
+				trackPageClick(cleanedMessage);
+			}
 			message = '';
 		}
 	}
 
 	async function handleLeaveRoom() {
 		if (user && room) {
-			await updateUserChatroom(user, '');
+			await updateUserRoom(user, '');
 			await setUserCount(room.id, 0);
+			await updateUserTimestamp(user);
 
 			reloadPage();
 		}
@@ -64,11 +74,15 @@
 
 	async function handleCreateRoom() {
 		if (user) {
-			const newRoomId = await createRoom('');
-			await updateUserChatroom(user, newRoomId);
-
 			const cleanedMessage = removeHtmlTags(message);
-			await sendMessage(newRoomId, user, cleanedMessage);
+			if (cleanedMessage.length > 0) {
+				const newRoomId = await createRoom('');
+				await updateUserRoom(user, newRoomId);
+				await sendMessage(newRoomId, user, cleanedMessage);
+				await incrementMessageCount(newRoomId);
+				await updateUserTimestamp(user);
+				trackPageClick(cleanedMessage);
+			}
 			message = '';
 		}
 	}

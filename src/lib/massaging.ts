@@ -1,7 +1,7 @@
 import { db } from './firebase';
 import { collection, addDoc, doc, getDoc, getDocs, increment, limit, query, where, orderBy, onSnapshot, updateDoc, writeBatch } from 'firebase/firestore';
 
-import { updateUserChatroom } from '../lib/auth';
+import { updateUserRoom } from '../lib/auth';
 import { reloadPage } from '../lib/utils';
 
 import { get } from 'svelte/store';
@@ -64,6 +64,21 @@ export function subscribeToRoom(roomId: string, callback: (room: Room) => void):
     });
 }
 
+export function subscribeToRooms(callback: (rooms: Room[]) => void): void {
+
+    const roomsRef = collection(db, `rooms`);
+    const q = query(roomsRef, orderBy('timestamp', 'desc'), limit(20));
+
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+        const rooms: Room[] = [];
+        for (const doc of snapshot.docs) {
+            const room = doc.data();
+            rooms.push({ id: doc.id, ...room } as Room);
+        };
+        callback(rooms);
+    });
+}
+
 export function subscribeToMessages(roomId: string, callback: (messages: Message[]) => void): void {
     const messagesRef = collection(db, `rooms/${roomId}/messages`);
     const q = query(messagesRef, orderBy('timestamp'));
@@ -77,11 +92,24 @@ export function subscribeToMessages(roomId: string, callback: (messages: Message
     });
 }
 
+export function subscribeToUsers(callback: (users: User[]) => void): void {
+    const usersRef = collection(db, `users`);
+    const q = query(usersRef, orderBy('timestamp', 'desc'), limit(20));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const users: User[] = [];
+        snapshot.forEach((doc) => {
+            users.push(doc.data() as User);
+        });
+        callback(users);
+    });
+}
+
 export async function subscribeAll(user: User, roomId: string) {
     subscribeToRoom(roomId, async (roomData) => {
         console.log('-> Incoming [roomData]: ', roomData);
         if (roomData.userCount === 0) {
-            await updateUserChatroom(user, "");
+            await updateUserRoom(user, "");
             reloadPage();
         }
         roomStore.set(roomData);
@@ -105,6 +133,7 @@ export async function createRoom(name: string): Promise<string> {
         timestamp: Date.now(),
         userCount: 1,
         exposeCount: 0,
+        messageCount: 0,
     });
     return roomDoc.id;
 }
@@ -152,6 +181,19 @@ export async function incrementUserCount(roomId: string): Promise<void> {
     }
 }
 
+export async function incrementMessageCount(roomId: string): Promise<void> {
+    const roomRef = doc(db, 'rooms', roomId);
+
+    try {
+        await updateDoc(roomRef, {
+            messageCount: increment(1),
+        });
+        console.log(`Incremented messageCount for room ${roomId}`);
+    } catch (error) {
+        console.error(`Failed to increment messageCount for room ${roomId}:`, error);
+    }
+}
+
 export async function setUserCount(roomId: string, userCount: number): Promise<void> {
     const roomRef = doc(db, 'rooms', roomId);
 
@@ -172,6 +214,7 @@ export async function fetchRoom(user: User) {
         subscribeAll(user, user.currentRoomId);
     } else {
         const room = await fetchSingleRoom(user)
+        await incrementExposeCount(room.id);
         if (room) {
             console.log(`Subscribing User: ${user.email} to new Room: ${user.currentRoomId}`);
             subscribeAll(user, room.id);
