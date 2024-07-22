@@ -13,13 +13,25 @@
 	import { updateUserRoom, updateUserTimestamp } from '../lib/auth';
 	import { formatTimestamp, parseMessage, removeHtmlTags, reloadPage } from '../lib/utils';
 
-	import userStore from '../lib/userStore';
-	import usersStore from '../lib/usersStore';
-	import roomStore from '../lib/roomStore';
-	import messageStore from '../lib/messageStore';
-	import wordStore from '../lib/wordStore';
+	import userStore from '../store/userStore';
+	import usersStore from '../store/usersStore';
+	import roomStore from '../store/roomStore';
+	import messageStore from '../store/messageStore';
+	import wordStore from '../store/wordStore';
+
+	import Modal from '../components/Modal.svelte';
 
 	let message: string = '';
+
+	let isModalOpen = false;
+
+	function openModal() {
+		isModalOpen = true;
+	}
+
+	function closeModal() {
+		isModalOpen = false;
+	}
 
 	function trackPageClick(text: string) {
 		if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
@@ -101,8 +113,6 @@
 		}
 	}
 
-	// let user: User | null;
-
 	// Reactive statement that runs when `user` is set
 	$: if (user?.uid) {
 		fetchWords();
@@ -123,6 +133,7 @@
 </script>
 
 <div>
+	<!-- <button on:click={openModal}>Open Modal</button> -->
 	{#if user}
 		<div class="container">
 			<table class="messages">
@@ -166,6 +177,9 @@
 			</table>
 		</div>
 	{/if}
+	<Modal title="My Modal" isOpen={isModalOpen} on:close={closeModal}>
+		<p>This is the content of the modal.</p>
+	</Modal>
 </div>
 
 <style lang="scss">

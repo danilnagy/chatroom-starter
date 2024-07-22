@@ -4,8 +4,8 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthState
 import { db } from './firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-import userStore, { type User } from './userStore';
-import usersStore, { type UserLookup } from './usersStore';
+import userStore, { type User } from '../store/userStore';
+import usersStore, { type UserLookup } from '../store/usersStore';
 
 export async function signUp(email: string, password: string): Promise<void> {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);

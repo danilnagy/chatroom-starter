@@ -5,17 +5,18 @@
 	import { formatTimestamp, parseMessage, removeHtmlTags } from '../../lib/utils';
 
 	import { page } from '$app/stores';
-	import userStore, { type User } from '../../lib/userStore';
-	import roomStore from '../../lib/roomStore';
-	import messageStore from '../../lib/messageStore';
-	import wordStore from '../../lib/wordStore';
+	import userStore, { type User } from '../../store/userStore';
+	import messageStore from '../../store/messageStore';
+	import wordStore from '../../store/wordStore';
 
 	let message: string = '';
 
 	async function handleSendMessage() {
-		const cleanedMessage = removeHtmlTags(message);
-		await sendMessage(chatroomId, user?.email || 'Anonymous', cleanedMessage);
-		message = '';
+		if (user) {
+			const cleanedMessage = removeHtmlTags(message);
+			await sendMessage(chatroomId, user, cleanedMessage);
+			message = '';
+		}
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
@@ -31,7 +32,7 @@
 		}
 	}
 
-	let user: User | null;
+	// let user: User | null;
 
 	// Reactive statement that runs when `user` is set
 	$: if (user) {

@@ -3,8 +3,8 @@
 	import { subscribeToRooms, subscribeToUsers } from '../../lib/massaging';
 	import { formatTimeDifference } from '../../lib/utils';
 
-	import userStore, { type User } from '../../lib/userStore';
-	import { type Room } from '../../lib/roomStore';
+	import userStore, { type User } from '../../store/userStore';
+	import { type Room } from '../../store/roomStore';
 
 	let selectedRoom: Room | null;
 
@@ -50,9 +50,11 @@
 		? users.filter((user) => user.currentRoomId === selectedRoom?.id)
 		: users;
 
+	$: isAdmin = user?.admin;
+
 	// Reactive statement that runs when `user` is set
 	$: if (user?.uid) {
-		if (user?.email === 'danilnagy@gmail.com') {
+		if (user?.admin) {
 			loadData();
 		}
 	}
@@ -63,7 +65,7 @@
 </script>
 
 <div>
-	{#if user}
+	{#if isAdmin}
 		<div class="container">
 			<div class="two-col">
 				<table class="messages">
@@ -130,6 +132,10 @@
 				</table>
 			</div>
 		</div>
+	{:else}
+		<div class="column">
+			<a href="/">{`Back`}</a>
+		</div>
 	{/if}
 </div>
 
@@ -153,6 +159,11 @@
 		tr:hover {
 			border-color: rgba(0, 0, 0, 0.5);
 		}
+	}
+	.column {
+		max-width: 800px;
+		margin: 0 auto;
+		padding: 2rem 0;
 	}
 	.container {
 		background-color: white;

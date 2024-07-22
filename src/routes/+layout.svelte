@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { logIn, logOut, signUp } from '../lib/auth';
-	import userStore from '../lib/userStore';
+	import userStore from '../store/userStore';
 	import '../app.css';
 
 	let email: string = '';

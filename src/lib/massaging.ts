@@ -5,11 +5,11 @@ import { updateUserRoom } from '../lib/auth';
 import { reloadPage } from '../lib/utils';
 
 import { get } from 'svelte/store';
-import messageStore, { type Message } from './messageStore';
-import roomStore, { type Room } from './roomStore';
-import wordStore from './wordStore';
-import { type User } from './userStore';
-import usersStore, { type ReducedUser, type UserLookup } from './usersStore';
+import messageStore, { type Message } from '../store/messageStore';
+import roomStore, { type Room } from '../store/roomStore';
+import wordStore from '../store/wordStore';
+import { type User } from '../store/userStore';
+import usersStore, { type ReducedUser, type UserLookup } from '../store/usersStore';
 
 async function fetchUserNames(userIds: string[]): Promise<void> {
     const newUsers: ReducedUser[] = [];
