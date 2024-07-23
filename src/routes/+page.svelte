@@ -10,7 +10,7 @@
 		incrementUserCount,
 		incrementMessageCount
 	} from '../lib/massaging';
-	import { updateUserRoom, updateUserTimestamp } from '../lib/auth';
+	import { updateUserRoom, updateUserTimestamp, logIn, signUp, resetPassword } from '../lib/auth';
 	import { formatTimestamp, parseMessage, removeHtmlTags, reloadPage } from '../lib/utils';
 
 	import userStore from '../store/userStore';
@@ -18,19 +18,23 @@
 	import roomStore from '../store/roomStore';
 	import messageStore from '../store/messageStore';
 	import wordStore from '../store/wordStore';
+	import { modalState, closeModal, toggleState } from '../store/modalStore';
 
 	import Modal from '../components/Modal.svelte';
 
 	let message: string = '';
 
-	let isModalOpen = false;
+	let userName: string = '';
+	let email: string = '';
+	let password: string = '';
+	let error = '';
+	let warning = '';
 
-	function openModal() {
-		isModalOpen = true;
+	function clearWarning() {
+		warning = '';
 	}
-
-	function closeModal() {
-		isModalOpen = false;
+	function clearError() {
+		error = '';
 	}
 
 	function trackPageClick(text: string) {
@@ -113,6 +117,59 @@
 		}
 	}
 
+	function handleToggleState() {
+		error = '';
+		toggleState();
+	}
+
+	async function handleSignUp() {
+		try {
+			await signUp(userName, email, password);
+			userName = '';
+			email = '';
+			password = '';
+			error = '';
+			closeModal();
+		} catch (e) {
+			if (e instanceof Error) {
+				error = 'Sign Up Failed: ' + e.message;
+			} else {
+				error = 'Sign Up Failed: An unknown error occurred';
+			}
+		}
+	}
+
+	async function handleLogIn() {
+		try {
+			await logIn(email, password);
+			userName = '';
+			email = '';
+			password = '';
+			error = '';
+			closeModal();
+		} catch (e) {
+			if (e instanceof Error) {
+				error = 'Log In Failed: ' + e.message;
+			} else {
+				error = 'Log In Failed: An unknown error occurred';
+			}
+		}
+	}
+
+	async function handleResetPassword() {
+		try {
+			await resetPassword(email);
+			error = '';
+			warning = `Reset password link was sent to [${email}]`;
+		} catch (e) {
+			if (e instanceof Error) {
+				error = 'Reset Password Failed: ' + e.message;
+			} else {
+				error = 'Reset Password Failed: An unknown error occurred';
+			}
+		}
+	}
+
 	// Reactive statement that runs when `user` is set
 	$: if (user?.uid) {
 		fetchWords();
@@ -129,13 +186,15 @@
 
 	$: chatting = user?.currentRoomId === room?.id;
 
+	$: state = $modalState;
+
 	onMount(async () => {});
 </script>
 
 <div>
 	<!-- <button on:click={openModal}>Open Modal</button> -->
-	{#if user}
-		<div class="container">
+	<div class="container">
+		{#if user}
 			<table class="messages">
 				{#each chatting ? messages : lastMessages as message (message.timestamp)}
 					<tr class={message.uid === user.uid ? 'grey' : ''}>
@@ -175,14 +234,195 @@
 					</td>
 				</tr>
 			</table>
-		</div>
-	{/if}
-	<Modal title="My Modal" isOpen={isModalOpen} on:close={closeModal}>
-		<p>This is the content of the modal.</p>
+		{:else}
+			<p>
+				Share anything you want in an anonymous 1-on-1 conversation, from how your day went to your
+				deepest thoughts and secrets.
+			</p>
+		{/if}
+	</div>
+	<Modal showHeader={true} isOpen={state.isOpen} on:close={closeModal}>
+		{#if warning}
+			<div class="message-box warning">
+				<div class="message">{warning}</div>
+				<button class="no-border" on:click={clearWarning}>&times;</button>
+			</div>
+		{/if}
+		{#if error}
+			<div class="message-box error">
+				<div class="message">{error}</div>
+				{#if !state.signUpState}
+					<button class="link-dark" on:click={handleResetPassword}>Reset password?</button>
+				{/if}
+				<button class="no-border" on:click={clearError}>&times;</button>
+			</div>
+		{/if}
+		{#if state.signUpState}
+			<div class="two-col">
+				<div class="col">
+					<p>Please choose an anonymous username.</p>
+					<p>
+						We request an email address only to help prevent bots and other abuses off the site.
+					</p>
+					<p>
+						The address is encrypted such that we can't even see it. The only identifying data we
+						have on users is the random username and password combinations they create here.
+					</p>
+				</div>
+				<div class="col min">
+					<div class="login-form">
+						<div class="form-section">
+							<div class="label">User name</div>
+							<input
+								class="dark"
+								type="text"
+								bind:value={userName}
+								placeholder="User name"
+								on:keyup={(event) => {
+									if (event.key === 'Enter') handleSignUp();
+								}}
+							/>
+						</div>
+						<div class="form-section">
+							<div class="label">Email</div>
+							<input
+								class="dark"
+								type="email"
+								bind:value={email}
+								placeholder="Email"
+								on:keyup={(event) => {
+									if (event.key === 'Enter') handleSignUp();
+								}}
+							/>
+						</div>
+						<div class="form-section">
+							<div class="label">Password</div>
+							<input
+								class="dark"
+								type="password"
+								bind:value={password}
+								placeholder="Password"
+								on:keyup={(event) => {
+									if (event.key === 'Enter') handleSignUp();
+								}}
+							/>
+						</div>
+						<div class="form-section">
+							<div class="label"></div>
+							<div class="button-group">
+								<button class="link-dark" on:click={handleToggleState}>Log In</button>
+								<button class="primary-dark" on:click={handleSignUp}>Sign Up</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		{:else}
+			<div class="two-col">
+				<!-- <div class="col"></div> -->
+				<div class="col min">
+					<div class="login-form">
+						<div class="form-section">
+							<div class="label">Email</div>
+							<input
+								class="dark"
+								type="email"
+								bind:value={email}
+								placeholder="Email"
+								on:keyup={(event) => {
+									if (event.key === 'Enter') handleLogIn();
+								}}
+							/>
+						</div>
+
+						<div class="form-section">
+							<div class="label">Password</div>
+							<input
+								class="dark"
+								type="password"
+								bind:value={password}
+								placeholder="Password"
+								on:keyup={(event) => {
+									if (event.key === 'Enter') handleLogIn();
+								}}
+							/>
+						</div>
+						<div class="form-section">
+							<div class="label"></div>
+							<div class="button-group">
+								<button class="link-dark" on:click={toggleState}>Sign up</button>
+								<button class="primary-dark" on:click={handleLogIn}>Log in</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		{/if}
 	</Modal>
 </div>
 
 <style lang="scss">
+	.message-box {
+		border-radius: 0.5rem;
+		margin-bottom: 1rem;
+		padding: 1rem;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		// justify-content: space-between;
+		.message {
+			flex-grow: 1;
+		}
+	}
+	.warning {
+		background-color: rgba(255, 234, 0, 0.25);
+	}
+	.error {
+		background-color: rgba(255, 0, 0, 0.25);
+	}
+	.two-col {
+		display: flex;
+		justify-content: flex-end;
+		gap: 2rem;
+		.col {
+			flex: 1 0 0;
+			max-width: 360px;
+			.login-form {
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				.form-section {
+					display: flex;
+					align-items: center;
+					gap: 1rem;
+					.label {
+						width: 100px;
+					}
+					.button-group {
+						display: flex;
+						flex-grow: 1;
+						justify-content: space-between;
+						button {
+							flex: 1;
+							text-align: left;
+						}
+					}
+					input {
+						flex-grow: 1;
+					}
+				}
+			}
+		}
+		.min {
+			min-width: 360px;
+		}
+		p {
+			margin-top: 0;
+		}
+		p:last-child {
+			margin-bottom: 0;
+		}
+	}
 	em {
 		font-size: 0.75rem;
 		white-space: nowrap;
@@ -233,9 +473,38 @@
 		color: #777777;
 	}
 
-	@media (max-width: 700px) {
+	@media (max-width: 500px) {
+		.two-col {
+			.col {
+				width: 100%;
+				min-width: inherit;
+				max-width: inherit;
+				.login-form {
+					.form-section {
+					}
+				}
+			}
+		}
+	}
+
+	@media (max-width: 800px) {
+		.error {
+			justify-content: center;
+		}
 		form {
 			flex-direction: column;
+		}
+		.two-col {
+			flex-direction: column;
+			align-items: center;
+			.col {
+				.login-form {
+					.form-section {
+						flex-direction: column;
+						align-items: stretch;
+					}
+				}
+			}
 		}
 	}
 </style>

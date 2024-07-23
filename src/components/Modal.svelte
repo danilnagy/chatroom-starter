@@ -3,6 +3,7 @@
 
 	export let isOpen = false;
 	export let title = '';
+	export let showHeader = false;
 
 	const dispatch = createEventDispatcher();
 
@@ -21,10 +22,11 @@
 	<div class="modal-overlay" on:click={handleOverlayClick}>
 		<div class="modal-container">
 			<div class="modal-content">
-				<div class="modal-header">
-					<h2>{title}</h2>
-					<button class="modal-close" on:click={closeModal}>&times;</button>
-				</div>
+				{#if showHeader}<div class="modal-header">
+						<h2>{title}</h2>
+						<button class="modal-close" on:click={closeModal}>&times;</button>
+					</div>
+				{/if}
 				<div class="modal-body">
 					<slot></slot>
 				</div>
@@ -45,6 +47,7 @@
 		justify-content: center;
 		align-items: center;
 		z-index: 1000;
+		cursor: pointer;
 		/* backdrop-filter: blur(2px); */
 	}
 	.modal-container {
@@ -54,15 +57,20 @@
 		width: 800px;
 		max-width: 800px;
 		margin: 0 auto;
+		cursor: auto;
 	}
 	.modal-content {
 		padding: 2rem;
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
 	}
 
 	.modal-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		margin: -1rem;
 	}
 
 	.modal-header h2 {
@@ -75,5 +83,11 @@
 		border: none;
 		font-size: 1.5rem;
 		cursor: pointer;
+	}
+
+	@media (max-width: 700px) {
+		.modal-container {
+			max-width: 100vw;
+		}
 	}
 </style>

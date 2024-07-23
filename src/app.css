@@ -18,8 +18,7 @@ body {
 }
 
 h1,
-h2,
-p {
+h2 {
 	font-size: 1rem;
 	font-weight: 600;
 	margin: 0;
@@ -61,13 +60,16 @@ pre {
 input,
 button {
 	background-color: white;
-	padding: 0.5rem 1rem;
+	padding: 0.75rem 1rem;
 	border-radius: 0;
 	border: 1px solid black;
 	font-size: inherit;
 	font-family: inherit;
-	cursor: pointer;
 	color: black;
+}
+
+button {
+	cursor: pointer;
 }
 
 button.primary {
@@ -81,12 +83,55 @@ button.secondary {
 	border: 1px solid white;
 }
 
+button.no-border {
+	background-color: rgba(0, 0, 0, 0);
+	border: none;
+	font-size: inherit;
+	font-family: inherit;
+	color: white;
+	font-size: 1.5rem;
+	line-height: 1rem;
+}
+
+button.dark {
+	background-color: rgba(0, 0, 0, 0);
+	border: 1px solid white;
+	font-size: inherit;
+	font-family: inherit;
+	color: white;
+}
+
+button.primary-dark {
+	background-color: white;
+	border: 1px solid black;
+	color: black;
+	font-weight: 700;
+}
+
+button.secondary-dark {
+	background-color: #DDDDDD;
+	border: 1px solid white;
+}
+
+button.link-dark {
+	background-color: rgba(0, 0, 0, 0);
+	border: none;
+	color: white;
+	font-weight: 700;
+	text-decoration: underline;
+}
+
 button:focus:not(:focus-visible) {
 	outline: none;
 }
 
 textarea {
 	font-family: var(--font-body);
+}
+
+input.dark {
+	background-color: #444444;
+	color: white;
 }
 
 @media (min-width: 720px) {

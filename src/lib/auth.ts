@@ -1,5 +1,5 @@
 import { auth } from './firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'firebase/auth';
 
 import { db } from './firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -7,9 +7,15 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import userStore, { type User } from '../store/userStore';
 import usersStore, { type UserLookup } from '../store/usersStore';
 
-export async function signUp(email: string, password: string): Promise<void> {
+export async function signUp(userName: string, email: string, password: string): Promise<void> {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
+  const uid = user.uid;
+
+  const userRef = doc(db, 'users', uid);
+  await setDoc(userRef, { uid, userName, currentRoomId: '', timestamp: Date.now() });
+  console.log(`Created new user document for user ${uid}`);
+
 }
 
 export async function logIn(email: string, password: string): Promise<void> {
@@ -19,6 +25,10 @@ export async function logIn(email: string, password: string): Promise<void> {
 
 export async function logOut(): Promise<void> {
   await signOut(auth);
+}
+
+export async function resetPassword(email: string): Promise<void> {
+  await sendPasswordResetEmail(auth, email);
 }
 
 export async function getUserData(uid: string): Promise<User | null> {

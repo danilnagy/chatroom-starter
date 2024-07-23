@@ -214,8 +214,8 @@ export async function fetchRoom(user: User) {
         subscribeAll(user, user.currentRoomId);
     } else {
         const room = await fetchSingleRoom(user)
-        await incrementExposeCount(room.id);
         if (room) {
+            await incrementExposeCount(room.id);
             console.log(`Subscribing User: ${user.email} to new Room: ${user.currentRoomId}`);
             subscribeAll(user, room.id);
         }
