@@ -18,7 +18,8 @@
 	import roomStore from '../store/roomStore';
 	import messageStore from '../store/messageStore';
 	import wordStore from '../store/wordStore';
-	import { modalState, closeModal, toggleState } from '../store/modalStore';
+	import loadedStore from '../store/loadedStore';
+	import { modalState, closeModal, openModal, toggleState } from '../store/modalStore';
 
 	import Modal from '../components/Modal.svelte';
 
@@ -63,20 +64,24 @@
 
 	// joining room
 	async function handleReplyMessage() {
-		if (user && room) {
-			const cleanedMessage = removeHtmlTags(message);
-			if (cleanedMessage.length > 0) {
-				await updateUserRoom(user, room.id);
+		if (room) {
+			if (user) {
+				const cleanedMessage = removeHtmlTags(message);
+				if (cleanedMessage.length > 0) {
+					await updateUserRoom(user, room.id);
 
-				await sendMessage(room.id, user, cleanedMessage);
-				await updateUserTimestamp(user);
+					await sendMessage(room.id, user, cleanedMessage);
+					await updateUserTimestamp(user);
 
-				await incrementMessageCount(room.id);
-				await incrementUserCount(room.id);
+					await incrementMessageCount(room.id);
+					await incrementUserCount(room.id);
 
-				trackPageClick(cleanedMessage);
+					trackPageClick(cleanedMessage);
+				}
+				message = '';
+			} else {
+				openModal(true, async () => {});
 			}
-			message = '';
 		}
 	}
 
@@ -106,6 +111,8 @@
 				reloadPage();
 			}
 			message = '';
+		} else {
+			openModal(true, async () => {});
 		}
 	}
 
@@ -176,10 +183,22 @@
 		}
 	}
 
+	let firstUser: boolean = true;
+
 	// Reactive statement that runs when `user` is set
 	$: if (user?.uid) {
-		fetchWords();
-		fetchRoom(user);
+		console.log('Loaded user', user);
+		if (firstUser) {
+			firstUser = false;
+			fetchRoom(user);
+		}
+	} else {
+		setTimeout(() => {
+			if (!user?.uid) {
+				console.log('No user');
+				fetchRoom(null);
+			}
+		}, 1000);
 	}
 
 	$: user = $userStore;
@@ -187,23 +206,33 @@
 	$: room = $roomStore;
 	$: messages = $messageStore;
 	$: words = $wordStore;
+	$: loaded = $loadedStore;
 
 	$: lastMessages = messages.length > 0 ? [messages[messages.length - 1]] : [];
 
-	$: chatting = user?.currentRoomId === room?.id;
+	$: chatting = user && user.currentRoomId && room && room.id && user.currentRoomId === room.id;
 
 	$: state = $modalState;
 
-	onMount(async () => {});
+	onMount(async () => {
+		console.log(chatting);
+		fetchWords();
+	});
 </script>
 
 <div>
 	<!-- <button on:click={openModal}>Open Modal</button> -->
 	<div class="container">
-		{#if user}
+		{#if loaded}
+			{#if !user}
+				<p>
+					Share anything you want in an anonymous 1-on-1 conversation, from how your day went to
+					your deepest thoughts and secrets.
+				</p>
+			{/if}
 			<table class="messages">
 				{#each chatting ? messages : lastMessages as message (message.timestamp)}
-					<tr class={message.uid === user.uid ? 'grey' : ''}>
+					<tr class={user && message.uid === user.uid ? 'grey' : ''}>
 						<td>
 							<strong
 								>{users[message.uid]?.userName ? users[message.uid].userName : 'Anonymous'}
@@ -241,10 +270,7 @@
 				</tr>
 			</table>
 		{:else}
-			<p>
-				Share anything you want in an anonymous 1-on-1 conversation, from how your day went to your
-				deepest thoughts and secrets.
-			</p>
+			<p>Loading...</p>
 		{/if}
 	</div>
 	<Modal showHeader={true} isOpen={state.isOpen} on:close={closeModal}>

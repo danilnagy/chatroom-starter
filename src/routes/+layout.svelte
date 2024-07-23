@@ -2,11 +2,13 @@
 	import { logOut } from '../lib/auth';
 	import userStore from '../store/userStore';
 	import { openModal } from '../store/modalStore';
+	import { reloadPage } from '../lib/utils';
 	import '../app.css';
 
 	async function handleLogOut() {
 		try {
 			await logOut();
+			reloadPage();
 		} catch (e) {
 			if (e instanceof Error) {
 				alert('LogOut Failed: ' + e.message);
@@ -30,9 +32,9 @@
 		{:else}
 			<div class="login-form">
 				<div class="button-group">
-					<button on:click={() => openModal(false)}><strong>Log In</strong></button>
+					<button on:click={() => openModal(false, () => {})}><strong>Log In</strong></button>
 					<span>|</span>
-					<button on:click={() => openModal(true)}>Sign Up</button>
+					<button on:click={() => openModal(true, () => {})}>Sign Up</button>
 				</div>
 			</div>
 		{/if}

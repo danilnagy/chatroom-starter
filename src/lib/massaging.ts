@@ -10,6 +10,7 @@ import roomStore, { type Room } from '../store/roomStore';
 import wordStore from '../store/wordStore';
 import { type User } from '../store/userStore';
 import usersStore, { type ReducedUser, type UserLookup } from '../store/usersStore';
+import loadedStore from '../store/loadedStore';
 
 async function fetchUserNames(userIds: string[]): Promise<void> {
     const newUsers: ReducedUser[] = [];
@@ -105,11 +106,13 @@ export function subscribeToUsers(callback: (users: User[]) => void): void {
     });
 }
 
-export async function subscribeAll(user: User, roomId: string, temp: boolean = false) {
+export async function subscribeAll(user: User | null, roomId: string, temp: boolean = false) {
     subscribeToRoom(roomId, async (roomData) => {
         console.log('-> Incoming [roomData]: ', roomData);
         if (roomData.userCount === 0) {
-            await updateUserRoom(user, "");
+            if (user) {
+                await updateUserRoom(user, "");
+            }
             reloadPage();
         }
         if (temp && roomData.userCount === 2) {
@@ -117,13 +120,13 @@ export async function subscribeAll(user: User, roomId: string, temp: boolean = f
         }
         roomStore.set(roomData);
     });
-    subscribeToMessages(roomId, (messageData) => {
+    subscribeToMessages(roomId, async (messageData) => {
         console.log('-> Incoming [messageData]: ', messageData);
 
         // process incoming messages
         const uniqueIds = getUniqueUIDs(messageData);
         if (uniqueIds.length > 0)
-            fetchUserNames(uniqueIds);
+            await fetchUserNames(uniqueIds);
 
         messageStore.set(messageData);
     });
@@ -210,23 +213,33 @@ export async function setUserCount(roomId: string, userCount: number): Promise<v
     }
 }
 
-export async function fetchRoom(user: User) {
+export async function fetchRoom(user: User | null) {
 
-    if (user.currentRoomId) {
-        console.log(`Subscribing User: ${user.email} to existing Room: ${user.currentRoomId}`);
-        subscribeAll(user, user.currentRoomId);
+    if (user) {
+        if (user.currentRoomId) {
+            console.log(`Subscribing User: ${user.email} to existing Room: ${user.currentRoomId}`);
+            await subscribeAll(user, user.currentRoomId);
+        } else {
+            const room = await fetchSingleRoom()
+            if (room) {
+                await incrementExposeCount(room.id);
+                console.log(`Subscribing User: ${user.email} to new Room: ${room.id}`);
+                await subscribeAll(user, room.id, true);
+            }
+        }
     } else {
-        const room = await fetchSingleRoom(user)
+        const room = await fetchSingleRoom()
         if (room) {
             await incrementExposeCount(room.id);
-            console.log(`Subscribing User: ${user.email} to new Room: ${user.currentRoomId}`);
-            subscribeAll(user, room.id, true);
+            console.log(`Subscribing Anonymous user to new Room: ${room.id}`);
+            await subscribeAll(null, room.id, true);
         }
     }
+    loadedStore.set(true);
 
 }
 
-export async function fetchSingleRoom(user: User) {
+export async function fetchSingleRoom() {
     const q = query(
         collection(db, 'rooms'),
         where('userCount', '==', 1),
