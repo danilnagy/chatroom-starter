@@ -56,7 +56,7 @@ export async function updateUserRoom(user: User, roomId: string): Promise<void> 
 
   try {
     await setDoc(userRef, { uid: user.uid, currentRoomId: roomId }, { merge: true });
-    userStore.set({ ...user, currentRoomId: roomId })
+    // userStore.set({ ...user, currentRoomId: roomId })
     console.log(`Updated currentRoomId for user ${user.uid} to ${roomId}`);
   } catch (error) {
     console.error(`Failed to update currentRoomId for user ${user.uid}:`, error);
@@ -68,7 +68,7 @@ export async function updateUserTimestamp(user: User): Promise<void> {
 
   try {
     await setDoc(userRef, { uid: user.uid, timestamp: Date.now() }, { merge: true });
-    userStore.set({ ...user, timestamp: Date.now() })
+    // userStore.set({ ...user, timestamp: Date.now() })
     console.log(`Updated timestamp for user ${user.uid} to ${Date.now()}`);
   } catch (error) {
     console.error(`Failed to update timestamp for user ${user.uid}:`, error);

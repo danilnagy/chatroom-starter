@@ -67,11 +67,13 @@
 			const cleanedMessage = removeHtmlTags(message);
 			if (cleanedMessage.length > 0) {
 				await updateUserRoom(user, room.id);
-				await incrementUserCount(room.id);
 
 				await sendMessage(room.id, user, cleanedMessage);
-				await incrementMessageCount(room.id);
 				await updateUserTimestamp(user);
+
+				await incrementMessageCount(room.id);
+				await incrementUserCount(room.id);
+
 				trackPageClick(cleanedMessage);
 			}
 			message = '';
@@ -95,9 +97,13 @@
 				const newRoomId = await createRoom('');
 				await updateUserRoom(user, newRoomId);
 				await sendMessage(newRoomId, user, cleanedMessage);
-				await incrementMessageCount(newRoomId);
 				await updateUserTimestamp(user);
+
+				await incrementMessageCount(newRoomId);
+
 				trackPageClick(cleanedMessage);
+
+				reloadPage();
 			}
 			message = '';
 		}

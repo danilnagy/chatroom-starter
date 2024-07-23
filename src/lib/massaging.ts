@@ -105,11 +105,14 @@ export function subscribeToUsers(callback: (users: User[]) => void): void {
     });
 }
 
-export async function subscribeAll(user: User, roomId: string) {
+export async function subscribeAll(user: User, roomId: string, temp: boolean = false) {
     subscribeToRoom(roomId, async (roomData) => {
         console.log('-> Incoming [roomData]: ', roomData);
         if (roomData.userCount === 0) {
             await updateUserRoom(user, "");
+            reloadPage();
+        }
+        if (temp && roomData.userCount === 2) {
             reloadPage();
         }
         roomStore.set(roomData);
@@ -217,7 +220,7 @@ export async function fetchRoom(user: User) {
         if (room) {
             await incrementExposeCount(room.id);
             console.log(`Subscribing User: ${user.email} to new Room: ${user.currentRoomId}`);
-            subscribeAll(user, room.id);
+            subscribeAll(user, room.id, true);
         }
     }
 
