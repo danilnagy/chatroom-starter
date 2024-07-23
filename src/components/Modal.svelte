@@ -89,5 +89,8 @@
 		.modal-container {
 			max-width: 100vw;
 		}
+		.modal-content {
+			padding: 2rem 1rem;
+		}
 	}
 </style>

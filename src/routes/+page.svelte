@@ -473,6 +473,19 @@
 		color: #777777;
 	}
 
+	@media (max-width: 400px) {
+		.two-col {
+			.col {
+				.login-form {
+					.form-section {
+						flex-direction: column;
+						align-items: stretch;
+					}
+				}
+			}
+		}
+	}
+
 	@media (max-width: 500px) {
 		.two-col {
 			.col {
@@ -500,8 +513,6 @@
 			.col {
 				.login-form {
 					.form-section {
-						flex-direction: column;
-						align-items: stretch;
 					}
 				}
 			}
