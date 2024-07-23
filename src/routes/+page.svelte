@@ -206,7 +206,7 @@
 					<tr class={message.uid === user.uid ? 'grey' : ''}>
 						<td>
 							<strong
-								>{users[message.uid]?.userName ? users[message.uid].userName : message.uid}
+								>{users[message.uid]?.userName ? users[message.uid].userName : 'Anonymous'}
 							</strong>
 						</td>
 						<td width="99%">
@@ -434,6 +434,7 @@
 		white-space: nowrap;
 	}
 	table {
+		width: 100%;
 		tr {
 			td {
 				padding: 0.5rem 1rem 0.5rem 0;
@@ -503,6 +504,10 @@
 					}
 				}
 			}
+		}
+		tr {
+			display: flex;
+			flex-direction: column;
 		}
 	}
 
