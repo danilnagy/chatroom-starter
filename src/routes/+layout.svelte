@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { logOut } from '../lib/auth';
-	import { logIn, signUp, resetPassword } from '../lib/auth';
+	import { logIn, signUp, resetPassword, updateUserUserName } from '../lib/auth';
 	import userStore from '../store/userStore';
 	import { reloadPage } from '../lib/utils';
 	import '../app.css';
@@ -75,6 +75,18 @@
 		}
 	}
 
+	function handleChangeInfo() {
+		userName = user?.userName ? user.userName : '';
+		openModal('CHANGEINFO', () => {});
+	}
+
+	async function handleUpdateUserName() {
+		if (user) {
+			await updateUserUserName(user, userName);
+			reloadPage();
+		}
+	}
+
 	async function handleLogOut() {
 		try {
 			await logOut();
@@ -135,9 +147,9 @@
 		{:else}
 			<div class="top-form">
 				<div class="button-group">
-					<button on:click={() => openModal(false, () => {})}><strong>Log In</strong></button>
+					<button on:click={() => openModal('LOGIN', () => {})}><strong>Log In</strong></button>
 					<span>|</span>
-					<button on:click={() => openModal(true, () => {})}>Sign Up</button>
+					<button on:click={() => openModal('SIGNUP', () => {})}>Sign Up</button>
 				</div>
 			</div>
 		{/if}
@@ -145,7 +157,7 @@
 	<div class={`${menuOpen ? 'show-menu' : ''} menu`}>
 		<div class="menu-content">
 			<!-- <div>Change user name</div> -->
-			<button class="link-dark" on:click={handleLogOut}>Change Account Info</button>
+			<button class="link-dark" on:click={handleChangeInfo}>Change Account Info</button>
 			<button class="link-dark" on:click={handleLogOut}>Log out</button>
 		</div>
 	</div>
@@ -161,13 +173,13 @@
 		{#if error}
 			<div class="message-box error">
 				<div class="message">{error}</div>
-				{#if !state.signUpState}
+				{#if state.state === 'LOGIN'}
 					<button class="link-dark" on:click={handleResetPassword}>Reset password?</button>
 				{/if}
 				<button class="no-border-dark" on:click={clearError}>&times;</button>
 			</div>
 		{/if}
-		{#if state.signUpState}
+		{#if state.state === 'SIGNUP'}
 			<div class="two-col">
 				<div class="col">
 					<p>Please choose an anonymous username.</p>
@@ -229,7 +241,7 @@
 					</div>
 				</div>
 			</div>
-		{:else}
+		{:else if state.state === 'LOGIN'}
 			<div class="two-col">
 				<!-- <div class="col"></div> -->
 				<div class="col min">
@@ -264,6 +276,33 @@
 							<div class="button-group">
 								<button class="link-dark" on:click={toggleState}><strong>Sign up</strong></button>
 								<button class="primary-dark" on:click={handleLogIn}>Log in</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		{:else if state.state === 'CHANGEINFO'}
+			<div class="two-col">
+				<!-- <div class="col"></div> -->
+				<div class="col min">
+					<div class="login-form">
+						<div class="form-section">
+							<div class="label">User name</div>
+							<input
+								class="dark"
+								type="text"
+								bind:value={userName}
+								placeholder="User name"
+								on:keyup={(event) => {
+									if (event.key === 'Enter') handleSignUp();
+								}}
+							/>
+						</div>
+						<div class="form-section">
+							<div class="label"></div>
+							<div class="button-group">
+								<button class="link-dark" on:click={closeModal}><strong>Cancel</strong></button>
+								<button class="primary-dark" on:click={handleUpdateUserName}>Confirm</button>
 							</div>
 						</div>
 					</div>

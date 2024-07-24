@@ -65,7 +65,7 @@
 				}
 				message = '';
 			} else {
-				openModal(true, async () => {});
+				openModal('SIGNUP', async () => {});
 			}
 		}
 	}
@@ -97,7 +97,7 @@
 			}
 			message = '';
 		} else {
-			openModal(true, async () => {});
+			openModal('SIGNUP', async () => {});
 		}
 	}
 

@@ -75,6 +75,17 @@ export async function updateUserTimestamp(user: User): Promise<void> {
   }
 }
 
+export async function updateUserUserName(user: User, userName: string): Promise<void> {
+  const userRef = doc(db, 'users', user.uid);
+
+  try {
+    await setDoc(userRef, { uid: user.uid, userName }, { merge: true });
+    console.log(`Updated userName for user ${user.uid} to ${userName}`);
+  } catch (error) {
+    console.error(`Failed to update userName for user ${user.uid}:`, error);
+  }
+}
+
 function isUser(obj: any): obj is User {
   return obj && typeof obj === 'object' && 'userName' in obj;
 }
