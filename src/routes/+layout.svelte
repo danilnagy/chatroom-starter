@@ -412,6 +412,7 @@
 	}
 	.content {
 		transition: margin-top 1s;
+		padding: 1rem 0;
 	}
 	.top-form {
 		display: flex;
