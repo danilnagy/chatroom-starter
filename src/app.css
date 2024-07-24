@@ -4,6 +4,7 @@
 	--color-bg-0: rgb(202, 216, 228);
 	--color-bg-1: hsl(209, 36%, 86%);
 	--color-bg-2: hsl(224, 44%, 95%);
+	--color-bg-0-dark: hsl(224, 44%, 5%);
 	--color-theme-1: #ff3e00;
 	--color-theme-2: #4075a6;
 	--color-text: rgba(0, 0, 0, 0.9);
@@ -62,19 +63,20 @@ button {
 	background-color: white;
 	padding: 0.75rem 1rem;
 	border-radius: 0;
-	border: 1px solid black;
+	border: 1px solid #0e0e0e;
 	font-size: inherit;
 	font-family: inherit;
-	color: black;
+	color: #0e0e0e;
 }
 
 button {
 	cursor: pointer;
 	min-width: 100px;
+	white-space: nowrap;
 }
 
 button.primary {
-	background-color: black;
+	background-color: #0e0e0e;
 	border: 1px solid white;
 	color: white;
 }
@@ -110,8 +112,8 @@ button.dark {
 
 button.primary-dark {
 	background-color: white;
-	border: 1px solid black;
-	color: black;
+	border: 1px solid #0e0e0e;
+	color: #0e0e0e;
 	font-weight: 700;
 }
 
@@ -124,7 +126,7 @@ button.link-dark {
 	background-color: rgba(0, 0, 0, 0);
 	border: none;
 	color: white;
-	font-weight: 700;
+	/* font-weight: 700; */
 	text-decoration: underline;
 }
 

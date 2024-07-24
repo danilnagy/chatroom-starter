@@ -51,7 +51,7 @@
 		/* backdrop-filter: blur(2px); */
 	}
 	.modal-container {
-		background-color: black;
+		background-color: #0e0e0e;
 		color: white;
 		overflow: clip;
 		width: 800px;
@@ -78,6 +78,7 @@
 	}
 
 	.modal-close {
+		min-width: 0;
 		background: none;
 		color: white;
 		border: none;
