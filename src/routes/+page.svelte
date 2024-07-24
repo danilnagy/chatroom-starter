@@ -277,7 +277,7 @@
 		{#if warning}
 			<div class="message-box warning">
 				<div class="message">{warning}</div>
-				<button class="no-border" on:click={clearWarning}>&times;</button>
+				<button class="no-border-dark" on:click={clearWarning}>&times;</button>
 			</div>
 		{/if}
 		{#if error}
@@ -286,7 +286,7 @@
 				{#if !state.signUpState}
 					<button class="link-dark" on:click={handleResetPassword}>Reset password?</button>
 				{/if}
-				<button class="no-border" on:click={clearError}>&times;</button>
+				<button class="no-border-dark" on:click={clearError}>&times;</button>
 			</div>
 		{/if}
 		{#if state.signUpState}

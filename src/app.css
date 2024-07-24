@@ -85,10 +85,16 @@ button.secondary {
 }
 
 button.no-border {
+	border: none;
+	min-width: 0;
+	font-size: 1.5rem;
+	line-height: 1rem;
+}
+
+button.no-border-dark {
 	background-color: rgba(0, 0, 0, 0);
 	border: none;
-	font-size: inherit;
-	font-family: inherit;
+	min-width: 0;
 	color: white;
 	font-size: 1.5rem;
 	line-height: 1rem;
