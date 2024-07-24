@@ -376,7 +376,7 @@
 		}
 	}
 	.menu {
-		position: fixed;
+		position: absolute;
 		top: -36px;
 		left: 0;
 		right: 0;
