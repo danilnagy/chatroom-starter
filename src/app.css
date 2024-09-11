@@ -122,13 +122,16 @@ button.secondary-dark {
 	border: 1px solid white;
 }
 
-button.link-dark {
+button.link {
 	background-color: rgba(0, 0, 0, 0);
 	border: none;
-	color: white;
 	min-width: 0;
 	/* font-weight: 700; */
 	text-decoration: underline;
+
+	&.dark {
+		color: white;
+	}
 }
 
 button:focus:not(:focus-visible) {

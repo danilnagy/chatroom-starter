@@ -157,8 +157,8 @@
 	<div class={`${menuOpen ? 'show-menu' : ''} menu`}>
 		<div class="menu-content">
 			<!-- <div>Change user name</div> -->
-			<button class="link-dark" on:click={handleChangeInfo}>Change Account Info</button>
-			<button class="link-dark" on:click={handleLogOut}>Log out</button>
+			<button class="link dark" on:click={handleChangeInfo}>Change Account Info</button>
+			<button class="link dark" on:click={handleLogOut}>Log out</button>
 		</div>
 	</div>
 	<div class={`${menuOpen ? 'show-menu' : ''} content`}><slot /></div>
@@ -174,7 +174,7 @@
 			<div class="message-box error">
 				<div class="message">{error}</div>
 				{#if state.state === 'LOGIN'}
-					<button class="link-dark" on:click={handleResetPassword}>Reset password?</button>
+					<button class="link dark" on:click={handleResetPassword}>Reset password?</button>
 				{/if}
 				<button class="no-border-dark" on:click={clearError}>&times;</button>
 			</div>
@@ -232,7 +232,7 @@
 						<div class="form-section">
 							<div class="label"></div>
 							<div class="button-group">
-								<button class="link-dark" on:click={handleToggleState}
+								<button class="link dark" on:click={handleToggleState}
 									><strong>Log In</strong></button
 								>
 								<button class="primary-dark" on:click={handleSignUp}>Sign Up</button>
@@ -274,7 +274,7 @@
 						<div class="form-section">
 							<div class="label"></div>
 							<div class="button-group">
-								<button class="link-dark" on:click={toggleState}><strong>Sign up</strong></button>
+								<button class="link dark" on:click={toggleState}><strong>Sign up</strong></button>
 								<button class="primary-dark" on:click={handleLogIn}>Log in</button>
 							</div>
 						</div>
@@ -301,7 +301,7 @@
 						<div class="form-section">
 							<div class="label"></div>
 							<div class="button-group">
-								<button class="link-dark" on:click={closeModal}><strong>Cancel</strong></button>
+								<button class="link dark" on:click={closeModal}><strong>Cancel</strong></button>
 								<button class="primary-dark" on:click={handleUpdateUserName}>Confirm</button>
 							</div>
 						</div>

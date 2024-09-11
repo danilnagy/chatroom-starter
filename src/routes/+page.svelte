@@ -163,6 +163,11 @@
 					your deepest thoughts and secrets.
 				</p>
 			{/if}
+			{#if chatting}
+				<div class="leave-link-container">
+					<button class="link" on:click|preventDefault={handleLeaveRoom}>Leave room</button>
+				</div>
+			{/if}
 			<table class="messages">
 				{#each chatting ? messages : lastMessages as message (message.timestamp)}
 					<tr class={user && message.uid === user.uid ? 'grey' : ''}>
@@ -190,7 +195,6 @@
 							<div class="buttonGroup">
 								{#if chatting}
 									<button class="primary" on:click|preventDefault={handleSendMessage}>Send</button>
-									<button class="secondary" on:click|preventDefault={handleLeaveRoom}>Leave</button>
 								{:else}
 									{#if messages.length > 0}
 										<button on:click|preventDefault={handleReplyMessage}>Join</button>
@@ -226,11 +230,17 @@
 		}
 	}
 	.container {
+		position: relative;
 		background-color: white;
 		padding: 1rem;
 		overflow: clip;
 		max-width: 800px;
 		margin: 0 auto;
+		.leave-link-container {
+			position: absolute;
+			top: 0;
+			right: 0;
+		}
 	}
 	form {
 		// padding-top: 2rem;
