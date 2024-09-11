@@ -6,7 +6,7 @@ import { reloadPage } from '../lib/utils';
 
 import { get } from 'svelte/store';
 import messageStore, { type Message } from '../store/messageStore';
-import roomStore, { type Room } from '../store/roomStore';
+import roomStore, { type Room, type RoomPartial } from '../store/roomStore';
 import wordStore from '../store/wordStore';
 import { type User } from '../store/userStore';
 import usersStore, { type ReducedUser, type UserLookup } from '../store/usersStore';
@@ -140,6 +140,7 @@ export async function createRoom(name: string): Promise<string> {
         userCount: 1,
         exposeCount: 0,
         messageCount: 0,
+        open: true,
     });
     return roomDoc.id;
 }
@@ -200,12 +201,12 @@ export async function incrementMessageCount(roomId: string): Promise<void> {
     }
 }
 
-export async function setUserCount(roomId: string, userCount: number): Promise<void> {
+export async function modifyRoom(roomId: string, payload: RoomPartial): Promise<void> {
     const roomRef = doc(db, 'rooms', roomId);
 
     try {
         await updateDoc(roomRef, {
-            userCount,
+            ...payload
         });
         console.log(`Set userCount for room ${roomId}`);
     } catch (error) {

@@ -6,7 +6,7 @@
 		fetchRoom,
 		fetchWords,
 		sendMessage,
-		setUserCount,
+		modifyRoom,
 		incrementUserCount,
 		incrementMessageCount
 	} from '../lib/massaging';
@@ -73,7 +73,10 @@
 	async function handleLeaveRoom() {
 		if (user && room) {
 			await updateUserRoom(user, '');
-			await setUserCount(room.id, 0);
+			await modifyRoom(room.id, {
+				userCount: 0,
+				open: false,
+			});
 			await updateUserTimestamp(user);
 
 			reloadPage();

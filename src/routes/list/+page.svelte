@@ -75,6 +75,7 @@
 							<th>timestamp</th>
 							<th>userCount</th>
 							<th>exposeCount</th>
+							<th>open</th>
 							<th>messageCount</th>
 						</tr>
 					</thead>
@@ -97,6 +98,9 @@
 								</td>
 								<td>
 									{room.exposeCount}
+								</td>
+								<td>
+									{room.open}
 								</td>
 								<td>
 									{room.messageCount}
