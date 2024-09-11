@@ -152,6 +152,8 @@
 
 	$: chatting = user && user.currentRoomId && room && room.id && user.currentRoomId === room.id;
 
+	$: otherUserName = Object.keys(users).map(userId => users[userId].userName || "Anonymous").filter(userName => userName !== "You")[0]
+
 	onMount(async () => {
 		console.log(chatting);
 		fetchWords();
@@ -176,12 +178,12 @@
 			{#if leavePopupVisible}
 				<div class="leave-form-container">
 					<div class="menu-content">
-						<p>
-							{`Would you ever want to talk to ${"X"} again in life?`}
-						</p>
-						<p>
-							{`You cannot reconnect with ${"X"} on this site after ending the conversation.`}
-						</p>
+							<p>
+								{`Would you ever want to talk to ${otherUserName} again in life?`}
+							</p>
+							<p>
+								{`You cannot reconnect with ${otherUserName} on this site after ending the conversation.`}
+							</p>
 						<div class="button-group">
 							<button class="primary" on:click={toggleLeavePopup}>Stay for Now</button>
 							<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>
@@ -192,7 +194,7 @@
 				<div class="leave-form-container">
 					<div class="menu-content">
 						<p>
-							{`User ${"X"} ended the conversation`}
+							{`User ${otherUserName} ended the conversation`}
 						</p>
 						<div class="button-group">
 							<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>

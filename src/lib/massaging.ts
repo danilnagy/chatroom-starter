@@ -23,7 +23,7 @@ async function fetchUserNames(userIds: string[]): Promise<void> {
 
         if (userSnap.exists()) {
             const userData = userSnap.data();
-            if (userData && userData.userName) {
+            if (userData) {
                 const newUser: ReducedUser = { userName: userData.userName }
                 console.log(`Got data for new User: ${uid} - ${newUser.userName}`)
                 newUsers.push(newUser);
