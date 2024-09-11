@@ -72,6 +72,7 @@ button {
 button {
 	cursor: pointer;
 	min-width: 100px;
+	max-width: max-content;
 	white-space: nowrap;
 }
 

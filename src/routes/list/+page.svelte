@@ -82,9 +82,9 @@
 					<tbody>
 						{#each filteredRooms as room (room.timestamp)}
 							<tr
-								class={room.userCount === 2
+								class={room.open && room.userCount === 2
 									? 'green'
-									: room.userCount === 1
+									: room.open && room.userCount === 1
 										? 'orange'
 										: 'disabled'}
 								on:click|preventDefault={() => onClickRoom(room)}

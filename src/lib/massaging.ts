@@ -244,6 +244,7 @@ export async function fetchSingleRoom() {
     const q = query(
         collection(db, 'rooms'),
         where('userCount', '==', 1),
+        where('open', '==', true),
         orderBy('exposeCount'),
         orderBy('timestamp'),
         limit(1)

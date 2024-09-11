@@ -11,7 +11,7 @@ export interface Room {
 }
 
 export interface RoomPartial {
-    userCount: number;
+    // userCount: number;
     open: boolean;
 }
 

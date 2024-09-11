@@ -385,7 +385,8 @@
 		// max-height: 130px;
 		color: #fff;
 		text-align: center;
-		transition: top 0.5s ease-in-out;
+		// transition: top 0.5s ease-in-out;
+		transition: top 0.1s;
 		z-index: 10;
 		max-width: 800px;
 		margin: 0 auto;
@@ -450,8 +451,9 @@
 		z-index: 20;
 	}
 	.content {
-		transition: margin-top 1s;
-		padding: 1rem 0;
+		transition: margin-top 0.1s;
+		// transition: margin-top 0.5s ease-in-out;
+		// padding: 1rem 0;
 	}
 	.top-form {
 		display: flex;

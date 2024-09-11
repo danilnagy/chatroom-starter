@@ -22,6 +22,7 @@
 	import { openModal } from '../store/modalStore';
 
 	let message: string = '';
+	let leavePopupVisible: boolean = false;
 
 	function trackPageClick(text: string) {
 		if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
@@ -70,11 +71,15 @@
 		}
 	}
 
+	function toggleLeavePopup() {
+		leavePopupVisible = !leavePopupVisible;
+	}
+
 	async function handleLeaveRoom() {
 		if (user && room) {
 			await updateUserRoom(user, '');
 			await modifyRoom(room.id, {
-				userCount: 0,
+				// userCount: 0,
 				open: false,
 			});
 			await updateUserTimestamp(user);
@@ -165,7 +170,34 @@
 			{/if}
 			{#if chatting}
 				<div class="leave-link-container">
-					<button class="link" on:click|preventDefault={handleLeaveRoom}>Leave room</button>
+					<button class="link" on:click|preventDefault={toggleLeavePopup}>Leave room</button>
+				</div>
+			{/if}
+			{#if leavePopupVisible}
+				<div class="leave-form-container">
+					<div class="menu-content">
+						<p>
+							{`Would you ever want to talk to ${"X"} again in life?`}
+						</p>
+						<p>
+							{`You cannot reconnect with ${"X"} on this site after ending the conversation.`}
+						</p>
+						<div class="button-group">
+							<button class="primary" on:click={toggleLeavePopup}>Stay for Now</button>
+							<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>
+						</div>
+					</div>
+				</div>
+			{:else if chatting && !room?.open}
+				<div class="leave-form-container">
+					<div class="menu-content">
+						<p>
+							{`User ${"X"} ended the conversation`}
+						</p>
+						<div class="button-group">
+							<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>
+						</div>
+					</div>
 				</div>
 			{/if}
 			<table class="messages">
@@ -236,10 +268,46 @@
 		overflow: clip;
 		max-width: 800px;
 		margin: 0 auto;
+		.messages {
+			padding: 1rem 0;
+		}
 		.leave-link-container {
 			position: absolute;
 			top: 0;
 			right: 0;
+			padding: 1rem 0;
+		}
+		.leave-form-container {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			padding: 0 1rem;
+			
+			.menu-content {
+				background-color: #0e0e0e;
+				height: 100%;
+				margin: 0;
+				padding: 2rem;
+				display: flex;
+				flex-direction: column;
+				align-items: flex-end;
+				// gap: 0.5rem;
+
+				.button-group {
+					display: flex;
+					margin-top: 1rem;
+					gap: 1rem;
+					button {
+						flex: 1;
+						text-align: left;
+					}
+				}
+
+				p {
+					color: white;
+				}
+			}
 		}
 	}
 	form {
