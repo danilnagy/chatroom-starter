@@ -171,48 +171,52 @@
 		{/if}
 		{#if leavePopupVisible}
 			<div class="leave-form-container">
-				<div class="menu-content">
-					{#if otherUserName == undefined}
-						<p>
-							{`Are you sure you want to close this conversation?`}
-						</p>
-					{:else}
-						<p>
-							{`Would you ever want to talk to ${otherUserName} again in life?`}
-						</p>
-						<form class="rating-form">
-							<div>
-								<input type="radio" id="huey" name="drone" value="huey" checked />
-								<label for="huey">Huey</label>
-							</div>
-							<div>
-								<input type="radio" id="dewey" name="drone" value="dewey" />
-								<label for="dewey">Dewey</label>
-							</div>
-						
-							<div>
-								<input type="radio" id="louie" name="drone" value="louie" />
-								<label for="louie">Louie</label>
-							</div>
-						</form>
-						<p>
-							{`You cannot reconnect with ${otherUserName} on this site after ending the conversation.`}
-						</p>
-					{/if}
-					<div class="button-group">
-						<button class="primary" on:click={toggleLeavePopup}>Stay for Now</button>
-						<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>
+				<div class="menu-container">
+					<div class="menu-content">
+						{#if otherUserName == undefined}
+							<p>
+								{`Are you sure you want to close this conversation?`}
+							</p>
+						{:else}
+							<p>
+								{`Would you ever want to talk to ${otherUserName} again in life?`}
+							</p>
+							<form class="rating-form">
+								<div>
+									<input type="radio" id="huey" name="drone" value="huey" />
+									<label for="huey">Huey</label>
+								</div>
+								<div>
+									<input type="radio" id="dewey" name="drone" value="dewey" />
+									<label for="dewey">Dewey</label>
+								</div>
+
+								<div>
+									<input type="radio" id="louie" name="drone" value="louie" />
+									<label for="louie">Louie</label>
+								</div>
+							</form>
+							<p>
+								{`You cannot reconnect with ${otherUserName} on this site after ending the conversation.`}
+							</p>
+						{/if}
+						<div class="button-group">
+							<button class="primary" on:click={toggleLeavePopup}>Stay for Now</button>
+							<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>
+						</div>
 					</div>
 				</div>
 			</div>
 		{:else if chatting && !room?.open}
 			<div class="leave-form-container">
-				<div class="menu-content">
-					<p>
-						{`User ${otherUserName} ended the conversation`}
-					</p>
-					<div class="button-group">
-						<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>
+				<div class="menu-container">
+					<div class="menu-content">
+						<p>
+							{`User ${otherUserName} ended the conversation`}
+						</p>
+						<div class="button-group">
+							<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -317,34 +321,35 @@
 			max-width: 800px;
 			margin: 0 auto;
 
-			.menu-content {
+			.menu-container {
 				background-color: #0e0e0e;
 				height: 100%;
 				margin: 0;
 				padding: 2rem;
-				display: flex;
-				flex-direction: column;
-				align-items: flex-end;
 				// gap: 0.5rem;
-
-				.button-group {
-					display: flex;
-					margin-top: 1rem;
-					gap: 1rem;
-					button {
-						flex: 1;
-						text-align: left;
-					}
-				}
-
-				p, form {
-					color: white;
-				}
-
-				.rating-form {
+				.menu-content {
 					display: flex;
 					flex-direction: column;
 					gap: 0.5rem;
+					.button-group {
+						display: flex;
+						gap: 1rem;
+						button {
+							flex: 1;
+							text-align: left;
+						}
+					}
+
+					p,
+					form {
+						color: white;
+					}
+
+					.rating-form {
+						display: flex;
+						flex-direction: column;
+						gap: 0.5rem;
+					}
 				}
 			}
 		}

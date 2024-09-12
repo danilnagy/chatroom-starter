@@ -74,6 +74,7 @@ button {
 	min-width: 100px;
 	max-width: max-content;
 	white-space: nowrap;
+	overflow: clip;
 }
 
 button.primary {
