@@ -351,7 +351,7 @@
 	}
 	.container {
 		background-color: white;
-		padding: 1rem;
+		padding: 1rem 2rem;
 		overflow: clip;
 		max-width: 800px;
 		margin: 0 auto;
@@ -430,6 +430,17 @@
 	}
 	.grey {
 		color: #777777;
+	}
+
+	@media (max-width: 400px) {
+		.top-overlay {
+			.leave-link-container {
+				padding: 1rem;
+			}
+		}
+		.container {
+			padding: 1rem;
+		}
 	}
 
 	@media (max-width: 500px) {
