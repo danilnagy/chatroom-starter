@@ -166,7 +166,7 @@
 	<div class="top-overlay">
 		{#if chatting && room?.open && !leavePopupVisible}
 			<div class="leave-link-container">
-				<button class="link" on:click|preventDefault={toggleLeavePopup}>Leave room</button>
+				<button class="link" on:click|preventDefault={toggleLeavePopup}>End conversation</button>
 			</div>
 		{/if}
 		{#if leavePopupVisible}
@@ -180,6 +180,21 @@
 						<p>
 							{`Would you ever want to talk to ${otherUserName} again in life?`}
 						</p>
+						<form class="rating-form">
+							<div>
+								<input type="radio" id="huey" name="drone" value="huey" checked />
+								<label for="huey">Huey</label>
+							</div>
+							<div>
+								<input type="radio" id="dewey" name="drone" value="dewey" />
+								<label for="dewey">Dewey</label>
+							</div>
+						
+							<div>
+								<input type="radio" id="louie" name="drone" value="louie" />
+								<label for="louie">Louie</label>
+							</div>
+						</form>
 						<p>
 							{`You cannot reconnect with ${otherUserName} on this site after ending the conversation.`}
 						</p>
@@ -322,8 +337,14 @@
 					}
 				}
 
-				p {
+				p, form {
 					color: white;
+				}
+
+				.rating-form {
+					display: flex;
+					flex-direction: column;
+					gap: 0.5rem;
 				}
 			}
 		}
