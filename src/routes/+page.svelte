@@ -227,8 +227,10 @@
 		{/if}
 		{#if leavePopupVisible}
 			<div class="leave-form-container">
+				<div class="backdrop" on:click={toggleLeavePopup}></div>
 				<div class="menu-container">
 					<div class="menu-content">
+						<button class="modal-close" on:click={toggleLeavePopup}>&times;</button>
 						{#if otherUserName == undefined}
 							<p>
 								{`Are you sure you want to close this conversation?`}
@@ -257,6 +259,7 @@
 			<div class="leave-form-container">
 				<div class="menu-container">
 					<div class="menu-content">
+						<button class="modal-close" on:click={toggleLeavePopup}>&times;</button>
 						<p>
 							{`${otherUserName} has ended the conversation. Would you ever want to speak with them again in life?`}
 						</p>
@@ -376,7 +379,20 @@
 			max-width: 800px;
 			margin: 0 auto;
 
+			.backdrop {
+				position: fixed;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				background-color: rgba(14, 14, 14, 0.5);
+				z-index: 200;
+				cursor: pointer;
+			}
+
 			.menu-container {
+				position: relative;
+				z-index: 250;
 				background-color: #0e0e0e;
 				height: 100%;
 				margin: 0;
@@ -386,6 +402,18 @@
 					display: flex;
 					flex-direction: column;
 					gap: 2rem;
+
+					.modal-close {
+						position: absolute;
+						top: 1rem;
+						right: 1rem;
+						min-width: 0;
+						background: none;
+						color: white;
+						border: none;
+						font-size: 1.5rem;
+						cursor: pointer;
+					}
 					.button-group {
 						display: flex;
 						gap: 1rem;
