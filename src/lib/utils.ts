@@ -66,6 +66,18 @@ export function reloadPage(delay: number = 0) {
     }
 }
 
+export function gHome() {
+    goToPage("https://www.tincann.ing");
+}
+
+export function goToPage(url: string, delay: number = 0) {
+    if (typeof window !== 'undefined') {
+        setTimeout(() => {
+            window.location.href = url;
+        }, delay);
+    }
+}
+
 export function calcConversationScore(S: number, R: number): number {
     if (S + R === 0) {
         return 0; // To avoid division by zero

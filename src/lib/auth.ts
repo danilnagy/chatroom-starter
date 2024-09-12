@@ -1,11 +1,10 @@
-import { auth } from './firebase';
+import { auth, db } from './firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendSignInLinkToEmail, getAuth, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
-
-import { db } from './firebase';
 import { collection, doc, addDoc, getDoc, setDoc, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
 import userStore, { type User } from '../store/userStore';
 import usersStore, { type UserLookup } from '../store/usersStore';
+import { gHome } from '../lib/utils';
 
 export async function signUp(userName: string, email: string, password: string): Promise<void> {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -82,6 +81,7 @@ export function parseSignInLink() {
         // getAdditionalUserInfo(result)?.profile
         // You can check if the user is new or existing:
         // getAdditionalUserInfo(result)?.isNewUser
+        gHome();
       })
       .catch((error) => {
         // Some error occurred, you can inspect the code: error.code
@@ -184,9 +184,6 @@ export async function updateUserRating(userId: string, rating: number): Promise<
     console.error(`Failed to update currentRoomId for user ${userId}:`, error);
   }
 }
-
-
-updateUserRating
 
 function isUser(obj: any): obj is User {
   return obj && typeof obj === 'object' && 'userName' in obj;
