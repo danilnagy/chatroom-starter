@@ -75,6 +75,15 @@ button {
 	max-width: max-content;
 	white-space: nowrap;
 	overflow: clip;
+
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+
+	.icon {
+		font-size: 1.5rem;
+		line-height: 1rem;
+	}
 }
 
 button:disabled {
@@ -96,8 +105,6 @@ button.secondary {
 button.no-border {
 	border: none;
 	min-width: 0;
-	font-size: 1.5rem;
-	line-height: 1rem;
 }
 
 button.no-border-dark {

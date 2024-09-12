@@ -114,26 +114,13 @@
 		<div><h2>tincann.ing</h2></div>
 		{#if user}
 			<div class="top-form">
-				<div>
-					{`${user.userName || user.email}`}{user.rating
-						? ` (${user.rating.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })})`
-						: ''}
-				</div>
-				<!-- <button on:click={handleLogOut}>Log Out</button> -->
 				<button class="no-border" on:click={handleMenuToggle}>
-					<div class={`${menuOpen ? 'rotate-45' : ''} trans`}>
-						<!-- {#if menuOpen}
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke-width="1.5"
-							stroke="currentColor"
-							class="size-6"
-						>
-							<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-						</svg>
-						{:else} -->
+					<div>
+						{`${user.userName || user.email}`}{user.rating
+							? ` (${user.rating.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })})`
+							: ''}
+					</div>
+					<div class={`${menuOpen ? 'rotate-45' : ''} trans icon`}>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							fill="none"
@@ -144,24 +131,34 @@
 						>
 							<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
 						</svg>
-						<!-- {/if} -->
 					</div>
 				</button>
 			</div>
 		{:else}
 			<div class="top-form">
 				<div class="button-group">
-					<button on:click={() => openModal('LOGIN', () => {})}><strong>Log In</strong></button>
+					<button class="no-border" on:click={() => openModal('LOGIN', () => {})}
+						><strong>Log In</strong></button
+					>
 					<span>|</span>
-					<button on:click={() => openModal('SIGNUP', () => {})}>Sign Up</button>
+					<button class="no-border" on:click={() => openModal('SIGNUP', () => {})}>Sign Up</button>
 				</div>
 			</div>
 		{/if}
 	</div>
 	<div class={`${menuOpen ? 'show-menu' : ''} menu`}>
 		<div class="menu-content">
-			<!-- <div>Change user name</div> -->
-			<button class="link dark" on:click={handleChangeInfo}>Change Account Info</button>
+			<p><strong>{`Conversing Score: ${user?.rating} / 10`}</strong></p>
+			<p>
+				Your Conversing Score reflects how well you interact with other incanners. Only you can see
+				it, but your conversation partners will typically have a similar score to yours. In other
+				words, the better you are to your fellow human, the better they will be to you.
+			</p>
+		</div>
+		<div class="menu-content">
+			<button class="link dark" on:click={handleChangeInfo}>Change Username</button>
+			<button class="link dark" on:click={() => {}}>Reset password</button>
+			<button class="link dark" on:click={() => {}}>Close account</button>
 			<button class="link dark" on:click={handleLogOut}>Log out</button>
 		</div>
 	</div>
@@ -317,6 +314,19 @@
 </div>
 
 <style lang="scss">
+	$top-bar-height: 4rem; // Define the variable for height
+	$divider-height: 0.25rem;
+	$menu-content-gap: 0.5rem;
+
+	$top-menu-height-lg: 15rem;
+	$top-menu-height-sm: 30rem;
+
+	$top-menu-offset-lg: -1 * ($top-menu-height-lg - $top-bar-height - $divider-height);
+	$top-menu-offset-sm: -1 * ($top-menu-height-sm - $top-bar-height - $divider-height);
+
+	$content-offset-lg: $top-menu-height-lg + $menu-content-gap;
+	$content-offset-sm: $top-menu-height-sm + $menu-content-gap;
+
 	.message-box {
 		border-radius: 0.5rem;
 		margin-bottom: 1rem;
@@ -381,14 +391,20 @@
 	}
 	.menu {
 		position: absolute;
-		top: -36px;
+		top: $top-menu-offset-lg;
 		left: 0;
 		right: 0;
 		width: 100%;
-		// min-height: 130px;
-		// max-height: 130px;
+		min-height: $top-menu-height-lg;
+		max-height: $top-menu-height-lg;
+
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+
+		background-color: #0e0e0e;
 		color: #fff;
-		text-align: center;
+
 		// transition: top 0.5s ease-in-out;
 		transition: top 0.1s;
 		z-index: 10;
@@ -396,14 +412,21 @@
 		margin: 0 auto;
 
 		.menu-content {
-			background-color: #0e0e0e;
-			height: 100%;
+			box-sizing: border-box;
+			max-width: 28rem;
+			max-height: 16rem;
 			margin: 0;
 			padding: 1rem 2rem;
 			display: flex;
 			flex-direction: column;
-			align-items: flex-end;
-			// gap: 0.5rem;
+
+			p {
+				margin: 0.5rem 0;
+			}
+		}
+
+		.menu-content:last-child {
+			align-items: flex-end; // Apply only to the last child
 		}
 	}
 
@@ -420,18 +443,18 @@
 	}
 
 	.show-menu.menu {
-		top: 80px; /* Adjust this value to match the height of your top bar */
+		top: $top-bar-height; /* Adjust this value to match the height of your top bar */
 	}
 
 	.show-menu.content {
-		margin-top: 120px; /* Adjust this value to match the height of the menu */
+		margin-top: $content-offset-lg; /* Adjust this value to match the height of the menu */
 	}
 
 	.rotate-45 {
 		transform: rotate(45deg);
 	}
 	.trans {
-		transition: transform 0.5s;
+		transition: transform 0.2s;
 	}
 	.size-6 {
 		width: 24px;
@@ -441,7 +464,8 @@
 		// margin: 0 2rem;
 	}
 	.container {
-		height: 48px;
+		box-sizing: border-box;
+		height: $top-bar-height;
 		background-color: white;
 		padding: 1rem;
 		display: flex;
@@ -470,15 +494,29 @@
 	.button-group {
 		display: flex;
 		align-items: center;
-		button {
-			border: none;
-		}
 	}
 	input {
 		// max-width: 210px;
 	}
 
 	@media (max-width: 700px) {
+		.menu {
+			top: $top-menu-offset-sm;
+			min-height: $top-menu-height-sm;
+			max-height: $top-menu-height-sm;
+			flex-direction: column;
+
+			.menu-content {
+			}
+
+			.menu-content:last-child {
+				align-items: flex-start; // Apply only to the last child
+			}
+		}
+
+		.show-menu.content {
+			margin-top: $content-offset-sm; /* Adjust this value to match the height of the menu */
+		}
 	}
 
 	@media (max-width: 850px) {
