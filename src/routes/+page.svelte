@@ -13,6 +13,7 @@
 	import {
 		addUserRating,
 		getLastFiveRatings,
+		parseSignInLink,
 		updateUserRoom,
 		updateUserRating,
 		updateUserTimestamp
@@ -213,8 +214,10 @@
 	let optionSelected = -1;
 
 	onMount(async () => {
-		console.log(chatting);
+		// console.log(chatting);
 		fetchWords();
+
+		parseSignInLink();
 	});
 </script>
 

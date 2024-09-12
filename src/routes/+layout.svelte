@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { logOut } from '../lib/auth';
-	import { logIn, signUp, resetPassword, updateUserUserName } from '../lib/auth';
+	import { logIn, signUp, resetPassword, sendSignInLink, updateUserUserName } from '../lib/auth';
 	import userStore from '../store/userStore';
-	import { reloadPage } from '../lib/utils';
+	import { reloadPage, validateEmail } from '../lib/utils';
 	import '../app.css';
 	import Modal from '../components/Modal.svelte';
 	import { modalState, closeModal, openModal, toggleState } from '../store/modalStore';
@@ -68,9 +68,28 @@
 			warning = `Reset password link was sent to [${email}]`;
 		} catch (e) {
 			if (e instanceof Error) {
-				error = 'Reset Password Failed: ' + e.message;
+				error = 'Reset password failed: ' + e.message;
 			} else {
-				error = 'Reset Password Failed: An unknown error occurred';
+				error = 'Reset password failed: An unknown error occurred';
+			}
+		}
+	}
+
+	async function handleSendSignInLink() {
+		if (!validateEmail(email)) {
+			error = 'Please enter a valid email address.';
+			return;
+		}
+
+		try {
+			await sendSignInLink(email);
+			error = '';
+			warning = `Sign in link was sent to [${email}]`;
+		} catch (e) {
+			if (e instanceof Error) {
+				error = 'Send link failed: ' + e.message;
+			} else {
+				error = 'Send link failed: An unknown error occurred';
 			}
 		}
 	}
@@ -181,7 +200,7 @@
 			<div class="message-box error">
 				<div class="message">{error}</div>
 				{#if state.state === 'LOGIN'}
-					<button class="link dark" on:click={handleResetPassword}>Reset password?</button>
+					<button class="link dark" on:click={handleSendSignInLink}>Send login link</button>
 				{/if}
 				<button class="no-border-dark" on:click={clearError}>&times;</button>
 			</div>
@@ -282,6 +301,9 @@
 							<div class="label"></div>
 							<div class="button-group">
 								<button class="link dark" on:click={toggleState}><strong>Sign up</strong></button>
+								<!-- <button class="link dark" on:click={toggleState}
+									><strong>Email Login Link</strong></button
+								> -->
 								<button class="primary-dark" on:click={handleLogIn}>Log in</button>
 							</div>
 						</div>
