@@ -13,7 +13,7 @@ export async function signUp(userName: string, email: string, password: string):
   const uid = user.uid;
 
   const userRef = doc(db, 'users', uid);
-  await setDoc(userRef, { uid, userName, currentRoomId: '', timestamp: Date.now() });
+  await setDoc(userRef, { uid, userName, currentRoomId: '', timestamp: Date.now(), rating: 5 });
   console.log(`Created new user document for user ${uid}`);
 
 }
