@@ -15,6 +15,8 @@
 	let email: string = '';
 	let password: string = '';
 
+	let hideSendLoginLink: boolean = false;
+
 	function clearWarning() {
 		warning = '';
 	}
@@ -58,6 +60,7 @@
 			} else {
 				error = 'Log In Failed: An unknown error occurred';
 			}
+			hideSendLoginLink = false;
 		}
 	}
 
@@ -91,6 +94,7 @@
 			} else {
 				error = 'Send link failed: An unknown error occurred';
 			}
+			hideSendLoginLink = true;
 		}
 	}
 
@@ -199,7 +203,7 @@
 		{#if error}
 			<div class="message-box error">
 				<div class="message">{error}</div>
-				{#if state.state === 'LOGIN'}
+				{#if state.state === 'LOGIN' && !hideSendLoginLink}
 					<button class="link dark" on:click={handleSendSignInLink}>Send login link</button>
 				{/if}
 				<button class="no-border-dark" on:click={clearError}>&times;</button>
@@ -361,7 +365,7 @@
 		margin-bottom: 1rem;
 		padding: 1rem;
 		display: flex;
-		flex-wrap: wrap;
+		// flex-wrap: wrap;
 		align-items: center;
 		// justify-content: space-between;
 		.message {

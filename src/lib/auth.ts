@@ -31,7 +31,7 @@ export async function resetPassword(email: string): Promise<void> {
   await sendPasswordResetEmail(auth, email);
 }
 
-export async function sendSignInLink(email: string): Promise<void> {
+export async function sendSignInLink(email: string): Promise<void | null> {
   const actionCodeSettings = {
     // URL you want to redirect back to. The domain (www.example.com) for this
     // URL must be in the authorized domains list in the Firebase Console.
@@ -49,12 +49,9 @@ export async function sendSignInLink(email: string): Promise<void> {
     // dynamicLinkDomain: 'example.page.link'
   };
 
-  try {
-    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-    window.localStorage.setItem('emailForSignIn', email);
-  } catch (error) {
-    console.error(`Failed to send sign in link to email ${email}:`, error);
-  }
+  await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+  window.localStorage.setItem('emailForSignIn', email);
+
 }
 
 export function parseSignInLink() {
