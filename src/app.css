@@ -128,6 +128,8 @@ button.link {
 	border: none;
 	min-width: 0;
 	/* font-weight: 700; */
+	padding-left: 0;
+	padding-right: 0;
 	text-decoration: underline;
 
 	&.dark {

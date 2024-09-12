@@ -80,7 +80,7 @@
 			await updateUserRoom(user, '');
 			await modifyRoom(room.id, {
 				// userCount: 0,
-				open: false,
+				open: false
 			});
 			await updateUserTimestamp(user);
 
@@ -152,7 +152,9 @@
 
 	$: chatting = user && user.currentRoomId && room && room.id && user.currentRoomId === room.id;
 
-	$: otherUserName = Object.keys(users).map(userId => users[userId].userName || "Anonymous").filter(userName => userName !== "You")[0]
+	$: otherUserName = Object.keys(users)
+		.map((userId) => users[userId].userName || 'Anonymous')
+		.filter((userName) => userName !== 'You')[0];
 
 	onMount(async () => {
 		console.log(chatting);
@@ -160,8 +162,47 @@
 	});
 </script>
 
-<div>
-	<!-- <button on:click={openModal}>Open Modal</button> -->
+<div class="wrapper">
+	<div class="top-overlay">
+		{#if chatting && room?.open && !leavePopupVisible}
+			<div class="leave-link-container">
+				<button class="link" on:click|preventDefault={toggleLeavePopup}>Leave room</button>
+			</div>
+		{/if}
+		{#if leavePopupVisible}
+			<div class="leave-form-container">
+				<div class="menu-content">
+					{#if otherUserName == undefined}
+						<p>
+							{`Are you sure you want to close this conversation?`}
+						</p>
+					{:else}
+						<p>
+							{`Would you ever want to talk to ${otherUserName} again in life?`}
+						</p>
+						<p>
+							{`You cannot reconnect with ${otherUserName} on this site after ending the conversation.`}
+						</p>
+					{/if}
+					<div class="button-group">
+						<button class="primary" on:click={toggleLeavePopup}>Stay for Now</button>
+						<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>
+					</div>
+				</div>
+			</div>
+		{:else if chatting && !room?.open}
+			<div class="leave-form-container">
+				<div class="menu-content">
+					<p>
+						{`User ${otherUserName} ended the conversation`}
+					</p>
+					<div class="button-group">
+						<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>
+					</div>
+				</div>
+			</div>
+		{/if}
+	</div>
 	<div class="container">
 		{#if loaded}
 			{#if !user}
@@ -169,38 +210,6 @@
 					Share anything you want in an anonymous 1-on-1 conversation, from how your day went to
 					your deepest thoughts and secrets.
 				</p>
-			{/if}
-			{#if chatting}
-				<div class="leave-link-container">
-					<button class="link" on:click|preventDefault={toggleLeavePopup}>Leave room</button>
-				</div>
-			{/if}
-			{#if leavePopupVisible}
-				<div class="leave-form-container">
-					<div class="menu-content">
-							<p>
-								{`Would you ever want to talk to ${otherUserName} again in life?`}
-							</p>
-							<p>
-								{`You cannot reconnect with ${otherUserName} on this site after ending the conversation.`}
-							</p>
-						<div class="button-group">
-							<button class="primary" on:click={toggleLeavePopup}>Stay for Now</button>
-							<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>
-						</div>
-					</div>
-				</div>
-			{:else if chatting && !room?.open}
-				<div class="leave-form-container">
-					<div class="menu-content">
-						<p>
-							{`User ${otherUserName} ended the conversation`}
-						</p>
-						<div class="button-group">
-							<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>
-						</div>
-					</div>
-				</div>
 			{/if}
 			<table class="messages">
 				{#each chatting ? messages : lastMessages as message (message.timestamp)}
@@ -263,8 +272,10 @@
 			}
 		}
 	}
-	.container {
+	.wrapper {
 		position: relative;
+	}
+	.container {
 		background-color: white;
 		padding: 1rem;
 		overflow: clip;
@@ -273,19 +284,24 @@
 		.messages {
 			padding: 1rem 0;
 		}
+	}
+	.top-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+
 		.leave-link-container {
-			position: absolute;
-			top: 0;
-			right: 0;
-			padding: 1rem 0;
+			max-width: 800px;
+			margin: 0 auto;
+			padding: 1rem;
+			display: flex;
+			justify-content: flex-end;
 		}
 		.leave-form-container {
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			padding: 0 1rem;
-			
+			max-width: 800px;
+			margin: 0 auto;
+
 			.menu-content {
 				background-color: #0e0e0e;
 				height: 100%;

@@ -395,7 +395,7 @@
 			background-color: #0e0e0e;
 			height: 100%;
 			margin: 0;
-			padding: 1rem;
+			padding: 1rem 2rem;
 			display: flex;
 			flex-direction: column;
 			align-items: flex-end;
