@@ -86,11 +86,12 @@ export async function updateUserUserName(user: User, userName: string): Promise<
   }
 }
 
-export async function addUserRating(userId: string, rating: number): Promise<void> {
+export async function addUserRating(userId: string, feedback: number, conversation: number): Promise<void> {
   const ratingsRef = collection(db, `users/${userId}/ratings`);
   try {
     await addDoc(ratingsRef, {
-      rating: 4 - rating,
+      feedback,
+      conversation,
       timestamp: Date.now()
     });
     console.log(`Added rating for user ${userId}`);

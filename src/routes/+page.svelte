@@ -17,12 +17,19 @@
 		updateUserRating,
 		updateUserTimestamp
 	} from '../lib/auth';
-	import { formatTimestamp, parseMessage, removeHtmlTags, reloadPage } from '../lib/utils';
+	import {
+		calcConversationScore,
+		calcRating,
+		formatTimestamp,
+		parseMessage,
+		removeHtmlTags,
+		reloadPage
+	} from '../lib/utils';
 
 	import userStore from '../store/userStore';
 	import usersStore from '../store/usersStore';
 	import roomStore from '../store/roomStore';
-	import messageStore from '../store/messageStore';
+	import messageStore, { getMetrics } from '../store/messageStore';
 	import wordStore from '../store/wordStore';
 	import loadedStore from '../store/loadedStore';
 	import { openModal } from '../store/modalStore';
@@ -46,13 +53,14 @@
 			if (room.userCount < 2) await clearRoom(room.id);
 
 			const cleanedMessage = removeHtmlTags(message);
+			message = '';
+
 			if (cleanedMessage.length > 0) {
 				await sendMessage(room.id, user, cleanedMessage);
 				await incrementMessageCount(room.id);
 				await updateUserTimestamp(user);
 				trackPageClick(cleanedMessage);
 			}
-			message = '';
 		}
 	}
 
@@ -85,17 +93,33 @@
 
 	async function handleLeaveRoom() {
 		if (otherUserId) {
+			const { S, R } = getMetrics(messages, user?.uid || '');
+			console.log(`S: ${S} R: ${R}`);
+			const conversationScore = calcConversationScore(S, R);
+			console.log(`conversationScore: ${conversationScore}`);
+
 			// store new rating item
-			await addUserRating(otherUserId, optionSelected);
+			await addUserRating(otherUserId, 4 - optionSelected, conversationScore);
 			optionSelected = -1;
 
 			// calculate and update other user's rating
 			const ratings = await getLastFiveRatings(otherUserId);
-			const averageRating =
-				ratings && ratings.length > 0
-					? ratings.reduce((sum, doc) => sum + doc.rating, 0) / ratings.length
-					: 0;
-			await updateUserRating(otherUserId, (averageRating + 1) * 2);
+
+			const FScores =
+				ratings
+					?.map((rating) => rating.feedback)
+					.filter((value) => value != undefined)
+					.map((value) => (value > 0 ? value - 2 : value - 5)) || [];
+			const MScores =
+				ratings?.map((rating) => rating.conversation).filter((value) => value != undefined) || [];
+
+			console.log('FScores', FScores);
+			console.log('MScores', MScores);
+
+			const calculatedRating = calcRating(FScores, MScores);
+			console.log('calculatedRating', calculatedRating);
+
+			await updateUserRating(otherUserId, calculatedRating);
 		}
 		if (user && room) {
 			await updateUserRoom(user, '');
@@ -261,9 +285,9 @@
 				{#each chatting ? messages : lastMessages as message (message.timestamp)}
 					<tr class={user && message.uid === user.uid ? 'grey' : ''}>
 						<td>
-							<strong
-								>{users[message.uid]?.userName ? users[message.uid].userName : 'Anonymous'}
-							</strong>
+							<div class="user-name">
+								{users[message.uid]?.userName ? users[message.uid].userName : 'Anonymous'}
+							</div>
 						</td>
 						<td width="99%">
 							{@html parseMessage(message.content, words)}
@@ -317,6 +341,10 @@
 				padding-right: 0;
 			}
 		}
+	}
+	.user-name {
+		white-space: nowrap;
+		font-weight: bold;
 	}
 	.wrapper {
 		position: relative;

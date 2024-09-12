@@ -65,3 +65,45 @@ export function reloadPage(delay: number = 0) {
         }, delay);
     }
 }
+
+export function calcConversationScore(S: number, R: number): number {
+    if (S + R === 0) {
+        return 0; // To avoid division by zero
+    }
+
+    const avg = (S + R) / 2;
+    const cubedAvg = Math.pow(avg, 3);
+    const absDiff = Math.abs(S - R);
+    const factor = 1 - (absDiff / (S + R));
+    const result = cubedAvg * factor;
+
+    // Logarithm base 400: log_b(x) = log(x) / log(b)
+    let logBase400 = Math.log(result) / Math.log(400);
+
+    // Clip the result at a maximum value of 3
+    logBase400 = Math.min(logBase400, 3);
+
+    // Round the result to one decimal point
+    const roundedResult = Math.round(logBase400 * 10) / 10;
+
+    return roundedResult;
+}
+
+export function calcRating(FScores: number[], MScores: number[]): number {
+
+    const fillArray = (a: number[], n: number, v: number) => a.concat(Array(n - a.length).fill(v));
+
+    const F = fillArray(FScores, 5, 0);
+    const M = fillArray(MScores, 5, calcConversationScore(1, 1));
+
+    const sumArrays = (a: number[], b: number[]) => a.map((value, index) => value + b[index]);
+
+    const ratings = sumArrays(F, M)
+
+    const averageRating =
+        ratings && ratings.length > 0
+            ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+            : 0;
+
+    return averageRating + 5;
+}
