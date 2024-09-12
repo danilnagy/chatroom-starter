@@ -148,9 +148,15 @@
 	</div>
 	<div class={`${menuOpen ? 'show-menu' : ''} menu`}>
 		<div class="menu-content">
-			<p><strong>{`Conversing Score: ${user?.rating} / 10`}</strong></p>
 			<p>
-				Your Conversing Score reflects how well you interact with other incanners. Only you can see
+				<strong
+					>Conversing Score:<span style="font-family: 'Courier New', Courier, monospace;"
+						>{` ${user?.rating || '5.0'} / 10`}</span
+					></strong
+				>
+			</p>
+			<p>
+				Your Conversing Score reflects how well you interact with other tincanners. Only you can see
 				it, but your conversation partners will typically have a similar score to yours. In other
 				words, the better you are to your fellow human, the better they will be to you.
 			</p>
