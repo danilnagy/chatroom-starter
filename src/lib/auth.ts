@@ -89,6 +89,7 @@ export function parseSignInLink() {
       .catch((error) => {
         // Some error occurred, you can inspect the code: error.code
         // Common errors could be invalid email and invalid or expired OTPs.
+        console.error("Sign in error:", error);
       });
   }
 }
