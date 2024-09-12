@@ -7,6 +7,7 @@ export interface User {
     currentRoomId?: string;
     timestamp?: number;
     admin?: boolean;
+    rating?: number;
 }
 
 const userStore = writable<User | null>(null);

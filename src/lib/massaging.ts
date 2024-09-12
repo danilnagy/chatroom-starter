@@ -201,7 +201,7 @@ export async function incrementMessageCount(roomId: string): Promise<void> {
     }
 }
 
-export async function modifyRoom(roomId: string, payload: RoomPartial): Promise<void> {
+export async function updateRoom(roomId: string, payload: RoomPartial): Promise<void> {
     const roomRef = doc(db, 'rooms', roomId);
 
     try {

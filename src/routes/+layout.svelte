@@ -114,7 +114,7 @@
 		<div><h2>tincann.ing</h2></div>
 		{#if user}
 			<div class="top-form">
-				<div>{user.userName || user.email}</div>
+				<div>{`${user.userName || user.email}`}{user.rating ? ` (${user.rating})` : ''}</div>
 				<!-- <button on:click={handleLogOut}>Log Out</button> -->
 				<button class="no-border" on:click={handleMenuToggle}>
 					<div class={`${menuOpen ? 'rotate-45' : ''} trans`}>

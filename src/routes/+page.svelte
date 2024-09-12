@@ -6,11 +6,17 @@
 		fetchRoom,
 		fetchWords,
 		sendMessage,
-		modifyRoom,
+		updateRoom,
 		incrementUserCount,
 		incrementMessageCount
 	} from '../lib/massaging';
-	import { updateUserRoom, updateUserTimestamp } from '../lib/auth';
+	import {
+		addUserRating,
+		getLastFiveRatings,
+		updateUserRoom,
+		updateUserRating,
+		updateUserTimestamp
+	} from '../lib/auth';
 	import { formatTimestamp, parseMessage, removeHtmlTags, reloadPage } from '../lib/utils';
 
 	import userStore from '../store/userStore';
@@ -20,6 +26,8 @@
 	import wordStore from '../store/wordStore';
 	import loadedStore from '../store/loadedStore';
 	import { openModal } from '../store/modalStore';
+
+	import RadioPicker from '../components/RadioPicker.svelte';
 
 	let message: string = '';
 	let leavePopupVisible: boolean = false;
@@ -76,16 +84,29 @@
 	}
 
 	async function handleLeaveRoom() {
+		if (otherUserId) {
+			// store new rating item
+			await addUserRating(otherUserId, optionSelected);
+			optionSelected = -1;
+
+			// calculate and update other user's rating
+			const ratings = await getLastFiveRatings(otherUserId);
+			const averageRating =
+				ratings && ratings.length > 0
+					? ratings.reduce((sum, doc) => sum + doc.rating, 0) / ratings.length
+					: 0;
+			await updateUserRating(otherUserId, (averageRating + 1) * 2);
+		}
 		if (user && room) {
 			await updateUserRoom(user, '');
-			await modifyRoom(room.id, {
+			await updateRoom(room.id, {
 				// userCount: 0,
 				open: false
 			});
 			await updateUserTimestamp(user);
-
-			reloadPage();
 		}
+
+		reloadPage();
 	}
 
 	async function handleCreateRoom() {
@@ -152,9 +173,20 @@
 
 	$: chatting = user && user.currentRoomId && room && room.id && user.currentRoomId === room.id;
 
+	$: otherUserId = Object.keys(users).filter((userId) => userId !== user?.uid)[0];
+
 	$: otherUserName = Object.keys(users)
 		.map((userId) => users[userId].userName || 'Anonymous')
 		.filter((userName) => userName !== 'You')[0];
+
+	$: optionsList = [
+		'Definitely!',
+		'Sure',
+		'No opinion',
+		"I'd rather not",
+		`${otherUserName} should be banned!`
+	];
+	let optionSelected = -1;
 
 	onMount(async () => {
 		console.log(chatting);
@@ -179,30 +211,20 @@
 							</p>
 						{:else}
 							<p>
-								{`Would you ever want to talk to ${otherUserName} again in life?`}
+								{`Would you ever want to speak with ${otherUserName} again in life?`}
 							</p>
-							<form class="rating-form">
-								<div>
-									<input type="radio" id="huey" name="drone" value="huey" />
-									<label for="huey">Huey</label>
-								</div>
-								<div>
-									<input type="radio" id="dewey" name="drone" value="dewey" />
-									<label for="dewey">Dewey</label>
-								</div>
-
-								<div>
-									<input type="radio" id="louie" name="drone" value="louie" />
-									<label for="louie">Louie</label>
-								</div>
-							</form>
+							<RadioPicker options={optionsList} bind:selectedIndex={optionSelected} />
 							<p>
 								{`You cannot reconnect with ${otherUserName} on this site after ending the conversation.`}
 							</p>
 						{/if}
 						<div class="button-group">
 							<button class="primary" on:click={toggleLeavePopup}>Stay for Now</button>
-							<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>
+							<button
+								class="secondary"
+								disabled={optionSelected < 0 && otherUserName != undefined ? true : undefined}
+								on:click={handleLeaveRoom}>End conversation</button
+							>
 						</div>
 					</div>
 				</div>
@@ -212,10 +234,15 @@
 				<div class="menu-container">
 					<div class="menu-content">
 						<p>
-							{`User ${otherUserName} ended the conversation`}
+							{`${otherUserName} has ended the conversation. Would you ever want to speak with them again in life?`}
 						</p>
+						<RadioPicker options={optionsList} bind:selectedIndex={optionSelected} />
 						<div class="button-group">
-							<button class="secondary" on:click={handleLeaveRoom}>End conversation</button>
+							<button
+								class="secondary"
+								disabled={optionSelected < 0 && otherUserName != undefined ? true : undefined}
+								on:click={handleLeaveRoom}>Leave conversation</button
+							>
 						</div>
 					</div>
 				</div>
@@ -330,7 +357,7 @@
 				.menu-content {
 					display: flex;
 					flex-direction: column;
-					gap: 0.5rem;
+					gap: 2rem;
 					.button-group {
 						display: flex;
 						gap: 1rem;
@@ -339,16 +366,9 @@
 							text-align: left;
 						}
 					}
-
-					p,
-					form {
+					p {
 						color: white;
-					}
-
-					.rating-form {
-						display: flex;
-						flex-direction: column;
-						gap: 0.5rem;
+						margin: 0;
 					}
 				}
 			}

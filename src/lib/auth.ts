@@ -2,7 +2,7 @@ import { auth } from './firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'firebase/auth';
 
 import { db } from './firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, doc, addDoc, getDoc, setDoc, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
 import userStore, { type User } from '../store/userStore';
 import usersStore, { type UserLookup } from '../store/usersStore';
@@ -85,6 +85,47 @@ export async function updateUserUserName(user: User, userName: string): Promise<
     console.error(`Failed to update userName for user ${user.uid}:`, error);
   }
 }
+
+export async function addUserRating(userId: string, rating: number): Promise<void> {
+  const ratingsRef = collection(db, `users/${userId}/ratings`);
+  try {
+    await addDoc(ratingsRef, {
+      rating: 4 - rating,
+      timestamp: Date.now()
+    });
+    console.log(`Added rating for user ${userId}`);
+  } catch (error) {
+    console.error(`Failed to add rating for user ${userId}:`, error);
+  }
+}
+
+export async function getLastFiveRatings(userId: string) {
+  const ratingsRef = collection(db, `users/${userId}/ratings`);
+  const q = query(ratingsRef, orderBy("timestamp", "desc"), limit(5)); // Order by timestamp in descending order, limit to 5
+
+  try {
+    const querySnapshot = await getDocs(q);
+    const ratings = querySnapshot.docs.map(doc => doc.data());
+    console.log("Last 5 ratings:", ratings);
+    return ratings;
+  } catch (error) {
+    console.error(`Failed to get last 5 ratings for user ${userId}:`, error);
+  }
+}
+
+export async function updateUserRating(userId: string, rating: number): Promise<void> {
+  const userRef = doc(db, 'users', userId);
+
+  try {
+    await setDoc(userRef, { uid: userId, rating: rating }, { merge: true });
+    console.log(`Updated rating for user ${userId} to ${rating}`);
+  } catch (error) {
+    console.error(`Failed to update currentRoomId for user ${userId}:`, error);
+  }
+}
+
+
+updateUserRating
 
 function isUser(obj: any): obj is User {
   return obj && typeof obj === 'object' && 'userName' in obj;
