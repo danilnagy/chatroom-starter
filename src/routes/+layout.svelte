@@ -506,9 +506,6 @@
 			max-height: $top-menu-height-sm;
 			flex-direction: column;
 
-			.menu-content {
-			}
-
 			.menu-content:last-child {
 				align-items: flex-start; // Apply only to the last child
 			}
@@ -535,6 +532,11 @@
 						align-items: stretch;
 					}
 				}
+			}
+		}
+		.menu {
+			.menu-content {
+				padding: 1rem;
 			}
 		}
 	}
