@@ -174,7 +174,7 @@
 			<p>
 				<strong
 					>Conversing Score:<span style="font-family: 'Courier New', Courier, monospace;"
-						>{` ${user?.rating || '5.0'} / 10`}</span
+						>{` ${user?.rating?.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || '5.0'} / 10`}</span
 					></strong
 				>
 			</p>
