@@ -263,7 +263,7 @@ export async function fetchSingleRoom() {
 export async function sendMessage(roomId: string, user: User, content: string): Promise<void> {
     const messagesRef = collection(db, `rooms/${roomId}/messages`);
     await addDoc(messagesRef, {
-        from: user.email,
+        // from: user.email,
         uid: user.uid,
         content,
         timestamp: Date.now()
