@@ -441,6 +441,19 @@
 		.container {
 			padding: 1rem;
 		}
+		.top-overlay {
+			.leave-form-container {
+				.menu-container {
+					padding: 2rem 1rem;
+
+					.menu-content {
+						.button-group {
+							flex-direction: column;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	@media (max-width: 500px) {

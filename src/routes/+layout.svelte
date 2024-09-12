@@ -314,7 +314,8 @@
 </div>
 
 <style lang="scss">
-	$top-bar-height: 4rem; // Define the variable for height
+	$top-bar-height: 4rem;
+	$top-bar: $top-bar-height - 2rem;
 	$divider-height: 0.25rem;
 	$menu-content-gap: 0.5rem;
 
@@ -464,10 +465,9 @@
 		// margin: 0 2rem;
 	}
 	.container {
-		box-sizing: border-box;
-		height: $top-bar-height;
+		height: $top-bar;
 		background-color: white;
-		padding: 1rem;
+		padding: 1rem 2rem;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -488,8 +488,8 @@
 		// gap: 1rem;
 		// flex-wrap: wrap;
 		align-items: center;
-		position: absolute;
-		right: 0;
+		position: relative;
+		right: -1rem;
 	}
 	.button-group {
 		display: flex;
@@ -538,6 +538,10 @@
 			.menu-content {
 				padding: 1rem;
 			}
+		}
+
+		.container {
+			padding: 1rem;
 		}
 	}
 
