@@ -497,7 +497,7 @@
 		.leave-link-container {
 			max-width: 800px;
 			margin: 0 auto;
-			padding: 1rem 2rem;
+			padding: 0.5rem 2rem;
 			display: flex;
 			justify-content: flex-end;
 		}
@@ -603,7 +603,7 @@
 		color: #777777;
 	}
 
-	.sticky {
+	tr.sticky {
 		background-color: white;
 
 		position: sticky;
@@ -613,6 +613,10 @@
 
 		max-width: 800px;
 		margin: 0 auto;
+
+		td {
+			padding-bottom: 2rem;
+		}
 	}
 
 	@media (max-width: 864px) {
@@ -629,8 +633,15 @@
 				display: flex;
 				flex-direction: column;
 
-				td:last-child {
-					padding-top: 0;
+				td:first-child {
+					padding-bottom: 0.5rem;
+				}
+
+				&.sticky {
+					td:last-child {
+						padding-top: 0.5rem;
+						padding-bottom: 5rem;
+					}
 				}
 			}
 		}
@@ -648,7 +659,7 @@
 	@media (max-width: 400px) {
 		.top-overlay {
 			.leave-link-container {
-				padding: 1rem;
+				padding: 0.5rem 1rem;
 			}
 		}
 		.container {
