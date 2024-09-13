@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
+	import { browser } from '$app/environment'; // Import the browser environment flag
 	import { logOut } from '../lib/auth';
 	import { logIn, signUp, resetPassword, sendSignInLink, updateUserUserName } from '../lib/auth';
 	import userStore from '../store/userStore';
@@ -136,20 +137,22 @@
 	$: state = $modalState;
 	$: messages = $messageStore;
 
-	let scrollContainer: HTMLElement | null = null;
+	let numMessages = 0;
 
-	function scrollToBottom() {
-		if (scrollContainer) {
-			scrollContainer.scrollTo({
-				top: scrollContainer.scrollHeight - scrollContainer.clientHeight,
-				behavior: 'smooth'
+	async function scrollToBottom(smooth = true) {
+		if (browser) {
+			await tick();
+			document.documentElement.scrollTo({
+				top: document.documentElement.scrollHeight,
+				behavior: smooth ? 'smooth' : 'instant' // Optional: use 'smooth' for smooth scrolling
 			});
 		}
 	}
 
 	$: if (messages.length > 0) {
 		console.log('Messages received:', messages.length);
-		scrollToBottom();
+		scrollToBottom(numMessages > 0); // instant scroll on first message load
+		numMessages = messages.length;
 	}
 
 	$: leavePopupVisible = $popupVisible;
@@ -157,7 +160,7 @@
 	function handleSroll(event: any) {
 		const target = event.target.scrollingElement;
 		console.log(target.clientHeight, target.scrollHeight, target.scrollTop);
-		if (target.scrollTop < target.scrollHeight - target.clientHeight - 42) {
+		if (target.scrollTop < target.scrollHeight - target.clientHeight - 60) {
 			scrolling.set(true);
 		} else {
 			scrolling.set(false);
@@ -240,7 +243,6 @@
 
 	<div
 		class={`${menuOpen ? 'show-menu ' : ''}${leavePopupVisible ? 'no-scroll ' : ''}content-container`}
-		bind:this={scrollContainer}
 	>
 		<div class={`${menuOpen ? 'show-menu' : ''} content`}>
 			<slot />
