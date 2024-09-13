@@ -213,6 +213,8 @@
 	];
 	let optionSelected = -1;
 
+	let selectedTab = 0;
+
 	onMount(async () => {
 		// console.log(chatting);
 		fetchWords();
@@ -229,28 +231,30 @@
 			</div>
 		{/if}
 		{#if leavePopupVisible}
-			<div class="leave-form-container">
+			<div class="leave-form-container" on:wheel|preventDefault={() => {}}>
 				<div class="backdrop" on:click={toggleLeavePopup}></div>
 				<div class="menu-container">
 					<div class="menu-content">
 						<button class="modal-close" on:click={toggleLeavePopup}>&times;</button>
-						{#if otherUserName == undefined}
-							<p>
-								{`Are you sure you want to close this conversation?`}
-							</p>
-						{:else}
-							<p>
-								{`Would you ever want to speak with ${otherUserName} again in life?`}
-							</p>
-							<RadioPicker options={optionsList} bind:selectedIndex={optionSelected} />
-							<p>
-								{`You cannot reconnect with ${otherUserName} on this site after ending the conversation.`}
-							</p>
-						{/if}
+						<div class="menu-body">
+							{#if otherUserName == undefined}
+								<p>
+									{`Are you sure you want to close this conversation?`}
+								</p>
+							{:else}
+								<p>
+									{`Would you ever want to speak with ${otherUserName} again in life?`}
+								</p>
+								<RadioPicker options={optionsList} bind:selectedIndex={optionSelected} />
+								<p>
+									{`You cannot reconnect with ${otherUserName} on this site after ending the conversation.`}
+								</p>
+							{/if}
+						</div>
 						<div class="button-group">
-							<button class="primary" on:click={toggleLeavePopup}>Stay for Now</button>
+							<button class="secondary-dark" on:click={toggleLeavePopup}>Stay for Now</button>
 							<button
-								class="secondary"
+								class="primary-dark"
 								disabled={optionSelected < 0 && otherUserName != undefined ? true : undefined}
 								on:click={handleLeaveRoom}>End conversation</button
 							>
@@ -263,10 +267,12 @@
 				<div class="menu-container">
 					<div class="menu-content">
 						<button class="modal-close" on:click={toggleLeavePopup}>&times;</button>
-						<p>
-							{`${otherUserName} has ended the conversation. Would you ever want to speak with them again in life?`}
-						</p>
-						<RadioPicker options={optionsList} bind:selectedIndex={optionSelected} />
+						<div class="menu-body">
+							<p>
+								{`${otherUserName} has ended the conversation. Would you ever want to speak with them again in life?`}
+							</p>
+							<RadioPicker options={optionsList} bind:selectedIndex={optionSelected} />
+						</div>
 						<div class="button-group">
 							<button
 								class="secondary"
@@ -287,44 +293,83 @@
 					your deepest thoughts and secrets.
 				</p>
 			{/if}
-			<table class="messages">
-				{#each chatting ? messages : lastMessages as message (message.timestamp)}
-					<tr class={user && message.uid === user.uid ? 'grey' : ''}>
-						<td>
-							<div class="user-name">
-								{users[message.uid]?.userName ? users[message.uid].userName : 'Anonymous'}
+			<div class={`messages-wrapper${chatting ? '' : ' border'}`}>
+				{#if !chatting}
+					<div class="tabs">
+						{#if messages.length > 0}
+							<div
+								class={`tab${selectedTab == 0 ? '' : ' hidden'}`}
+								on:click={() => {
+									selectedTab = 0;
+								}}
+							>
+								<div class="label">Reply to someone</div>
 							</div>
-						</td>
-						<td width="99%">
-							{@html parseMessage(message.content, words)}
-						</td>
-						<!-- <td><em>({formatTimestamp(message.timestamp)})</em></td> -->
-					</tr>
-				{/each}
-				<tr>
-					<td class="grey"><strong>You</strong></td>
-					<td width="99%">
-						<form>
-							<textarea
-								bind:value={message}
-								placeholder="Type a message"
-								required
-								on:keydown={handleKeydown}
-							/>
-							<div class="buttonGroup">
-								{#if chatting}
-									<button class="primary" on:click|preventDefault={handleSendMessage}>Send</button>
-								{:else}
-									{#if messages.length > 0}
-										<button on:click|preventDefault={handleReplyMessage}>Join</button>
-									{/if}
-									<button class="primary" on:click|preventDefault={handleCreateRoom}>Start</button>
-								{/if}
-							</div>
-						</form>
-					</td>
-				</tr>
-			</table>
+						{/if}
+						<div
+							class={`tab${selectedTab == (messages.length > 0 ? 1 : 0) ? '' : ' hidden'}`}
+							on:click={() => {
+								selectedTab = messages.length > 0 ? 1 : 0;
+							}}
+						>
+							<div class="label">Start a new conversation</div>
+						</div>
+					</div>
+				{/if}
+				<div class={`messages${chatting ? '' : ' border'}`}>
+					<table>
+						{#if selectedTab == 0}
+							{#each chatting ? messages : lastMessages as message (message.timestamp)}
+								<tr class={user && message.uid === user.uid ? 'grey' : ''}>
+									<td>
+										<div class="user-name">
+											{users[message.uid]?.userName ? users[message.uid].userName : 'Anonymous'}
+										</div>
+									</td>
+									<td width="99%">
+										{@html parseMessage(message.content, words)}
+									</td>
+									<!-- <td><em>({formatTimestamp(message.timestamp)})</em></td> -->
+								</tr>
+							{/each}
+						{/if}
+						<tr>
+							<td class={`${chatting ? 'grey' : ''}`}>
+								<div class="user-name">
+									{selectedTab == 0 && messages.length > 0 ? 'You' : 'Opening message'}
+								</div></td
+							>
+							<td width="99%">
+								<form>
+									<textarea
+										bind:value={message}
+										placeholder="Type a message"
+										required
+										on:keydown={handleKeydown}
+									/>
+									<div class="buttonGroup">
+										{#if chatting}
+											<button class="primary" on:click|preventDefault={handleSendMessage}
+												>Send</button
+											>
+										{:else}
+											<!-- {#if messages.length > 0}
+												<button on:click|preventDefault={handleReplyMessage}>Join</button>
+											{/if} -->
+											<button
+												class="primary"
+												on:click|preventDefault={selectedTab == 0 && messages.length > 0
+													? handleReplyMessage
+													: handleCreateRoom}>Send</button
+											>
+										{/if}
+									</div>
+								</form>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
 		{:else}
 			<p>Loading...</p>
 		{/if}
@@ -340,7 +385,7 @@
 		width: 100%;
 		tr {
 			td {
-				padding: 0.5rem 2rem 0.5rem 0;
+				padding: 0.5rem 1.5rem 0.5rem 0;
 				vertical-align: top;
 			}
 			td:last-child {
@@ -358,11 +403,69 @@
 	.container {
 		background-color: white;
 		padding: 1rem 2rem;
-		overflow: clip;
 		max-width: 800px;
 		margin: 0 auto;
-		.messages {
-			padding: 1rem 0;
+
+		.tabs {
+			position: absolute;
+			top: -3rem;
+			left: 0;
+			height: 3rem;
+			display: flex;
+			width: 100%;
+
+			.tab {
+				background-color: rgb(230, 230, 230);
+				display: flex;
+				flex-grow: 1;
+				// width: 50%;
+				align-items: center;
+				padding: 0 1rem;
+				border: 1px solid black;
+				border-bottom: none;
+				overflow: hidden;
+				position: relative;
+				top: 1px;
+				z-index: 50;
+				cursor: pointer;
+
+				.label {
+					font-weight: bold;
+					white-space: nowrap;
+					overflow: hidden;
+				}
+
+				&.hidden {
+					z-index: 10;
+					background-color: rgb(215, 215, 215);
+				}
+			}
+
+			.tab.hidden:first-child {
+				border-right: none;
+			}
+			.tab.hidden:last-child {
+				border-left: none;
+			}
+		}
+
+		.messages-wrapper {
+			&.border {
+				margin: 4rem 0;
+				position: relative;
+			}
+
+			.messages {
+				padding: 1rem 0;
+
+				&.border {
+					background-color: rgb(230, 230, 230);
+					border: solid 1px black;
+					padding: 2rem;
+					position: relative;
+					z-index: 25;
+				}
+			}
 		}
 	}
 	.top-overlay {
@@ -425,9 +528,18 @@
 							text-align: left;
 						}
 					}
-					p {
-						color: white;
-						margin: 0;
+					.menu-body {
+						display: flex;
+						flex-direction: column;
+						gap: 2rem;
+						p {
+							color: white;
+							margin: 0;
+						}
+
+						p:first-child {
+							padding-right: 3rem;
+						}
 					}
 				}
 			}
@@ -435,15 +547,20 @@
 	}
 	form {
 		// padding-top: 2rem;
-		width: 100%;
+		width: calc(100% + 0.5rem);
 		display: flex;
 		justify-content: flex-end;
 		gap: 1rem;
 
+		position: relative;
+		left: -0.5rem;
+		top: -0.5rem;
+
 		textarea {
-			min-height: 150px;
+			height: 46px; // match button+
+			box-sizing: border-box;
 			flex-grow: 1;
-			padding: 0px;
+			padding: 0.5rem;
 			border-radius: 0;
 			border: 0;
 			font-size: 1em;

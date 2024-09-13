@@ -16,6 +16,8 @@
 
 body {
 	margin: 0;
+	overflow: hidden;
+	font-size: 12pt;
 }
 
 h1,
@@ -71,7 +73,7 @@ button {
 
 button {
 	cursor: pointer;
-	min-width: 100px;
+	/* min-width: 100px; */
 	max-width: max-content;
 	white-space: nowrap;
 	overflow: clip;
@@ -93,7 +95,7 @@ button:disabled {
 
 button.primary {
 	background-color: #0e0e0e;
-	border: 1px solid white;
+	border: 1px solid black;
 	color: white;
 }
 
@@ -132,7 +134,8 @@ button.primary-dark {
 }
 
 button.secondary-dark {
-	background-color: #DDDDDD;
+	background-color: rgba(0, 0, 0, 0);
+	color: white;
 	border: 1px solid white;
 }
 

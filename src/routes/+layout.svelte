@@ -133,41 +133,44 @@
 </script>
 
 <div class="wrapper">
-	<div class="container">
-		<div><h2>tincann.ing</h2></div>
-		{#if user}
-			<div class="top-form">
-				<button class="no-border" on:click={handleMenuToggle}>
-					<div>
-						{`${user.userName || user.email}`}{user.rating
-							? ` (${user.rating.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })})`
-							: ''}
-					</div>
-					<div class={`${menuOpen ? 'rotate-45' : ''} trans icon`}>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke-width="1.5"
-							stroke="currentColor"
-							class="size-6"
-						>
-							<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-						</svg>
-					</div>
-				</button>
-			</div>
-		{:else}
-			<div class="top-form">
-				<div class="button-group">
-					<button class="no-border" on:click={() => openModal('LOGIN', () => {})}
-						><strong>Log In</strong></button
-					>
-					<span>|</span>
-					<button class="no-border" on:click={() => openModal('SIGNUP', () => {})}>Sign Up</button>
+	<div class="top-bar-container">
+		<div class="top-bar">
+			<div><h2>tincann.ing</h2></div>
+			{#if user}
+				<div class="top-form">
+					<button class="no-border" on:click={handleMenuToggle}>
+						<div>
+							{`${user.userName || user.email}`}{user.rating
+								? ` (${user.rating.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })})`
+								: ''}
+						</div>
+						<div class={`${menuOpen ? 'rotate-45' : ''} trans icon`}>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke-width="1.5"
+								stroke="currentColor"
+								class="size-6"
+							>
+								<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+							</svg>
+						</div>
+					</button>
 				</div>
-			</div>
-		{/if}
+			{:else}
+				<div class="top-form">
+					<div class="button-group">
+						<button class="no-border" on:click={() => openModal('LOGIN', () => {})}
+							><strong>Log In</strong></button
+						>
+						<span>|</span>
+						<button class="no-border" on:click={() => openModal('SIGNUP', () => {})}>Sign Up</button
+						>
+					</div>
+				</div>
+			{/if}
+		</div>
 	</div>
 	<div class={`${menuOpen ? 'show-menu' : ''} menu`}>
 		<div class="menu-content">
@@ -191,7 +194,11 @@
 			<button class="link dark" on:click={handleLogOut}>Log out</button>
 		</div>
 	</div>
-	<div class={`${menuOpen ? 'show-menu' : ''} content`}><slot /></div>
+	<div class="content-container">
+		<div class={`${menuOpen ? 'show-menu' : ''} content`}>
+			<slot />
+		</div>
+	</div>
 
 	<Modal showHeader={true} isOpen={state.isOpen} on:close={closeModal}>
 		{#if warning}
@@ -494,32 +501,45 @@
 		height: 24px;
 	}
 	.wrapper {
-		// margin: 0 2rem;
-	}
-	.container {
-		height: $top-bar;
-		background-color: white;
-		padding: 1rem 2rem;
+		min-height: 100vh;
+		max-height: 100vh;
 		display: flex;
+		flex-direction: column;
 		justify-content: space-between;
-		align-items: center;
-		// gap: 2rem;
-		// border-bottom: 2px solid rgba(0, 0, 0, 0.8);
-		max-width: 800px;
-		margin: 0 auto;
-		position: relative;
-		z-index: 20;
+
+		.top-bar-container {
+			background-color: white;
+			z-index: 20;
+
+			.top-bar {
+				min-height: $top-bar-height;
+				height: 100%;
+				max-width: 800px;
+				margin: 0 auto;
+				padding: 0 2rem;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+		}
+
+		.content-container {
+			display: flex;
+			flex-grow: 1;
+			overflow-x: hidden;
+			overflow-y: scroll;
+		}
 	}
 	.content {
+		flex-grow: 1;
 		transition: margin-top 0.1s;
-		// transition: margin-top 0.5s ease-in-out;
-		// padding: 1rem 0;
+		position: relative;
+		left: 0.5rem; //
 	}
 	.top-form {
 		display: flex;
-		// gap: 1rem;
-		// flex-wrap: wrap;
 		align-items: center;
+		justify-content: flex-end;
 		position: relative;
 		right: -1rem;
 	}
@@ -572,8 +592,12 @@
 			}
 		}
 
-		.container {
-			padding: 1rem;
+		.wrapper {
+			.top-bar-container {
+				.top-bar {
+					padding: 0 1rem;
+				}
+			}
 		}
 	}
 
@@ -604,6 +628,9 @@
 					}
 				}
 			}
+		}
+		.content {
+			left: 0;
 		}
 	}
 </style>
