@@ -34,7 +34,7 @@
 	import wordStore from '../store/wordStore';
 	import loadedStore from '../store/loadedStore';
 	import { openModal } from '../store/modalStore';
-	import { popupVisible, scrolling } from '../store/eventStore';
+	import { menuOpenStore, popupVisible, scrolling } from '../store/eventStore';
 
 	import RadioPicker from '../components/RadioPicker.svelte';
 
@@ -219,6 +219,8 @@
 
 	$: isScrolling = $scrolling;
 
+	$: menuOpen = $menuOpenStore;
+
 	onMount(async () => {
 		// console.log(chatting);
 		fetchWords();
@@ -228,7 +230,7 @@
 </script>
 
 <div class="wrapper">
-	<div class="top-overlay">
+	<div class={`top-overlay${menuOpen ? ' menu-open' : ''}`}>
 		{#if chatting && room?.open && !leavePopupVisible}
 			<div class="leave-link-container">
 				<button class="link" on:click|preventDefault={toggleLeavePopup}>End conversation</button>
@@ -384,6 +386,18 @@
 </div>
 
 <style lang="scss">
+	$top-bar-height: 4rem;
+	$top-bar: $top-bar-height - 2rem;
+	$divider-height: 0.25rem;
+	$menu-content-gap: 0.5rem;
+
+	$top-menu-height-lg: 15rem;
+	$top-menu-height-sm: 30rem;
+
+	$header-height: $top-bar-height + $divider-height + $menu-content-gap;
+	$header-height-lg: $header-height + $top-menu-height-lg;
+	$header-height-sm: $header-height + $top-menu-height-sm;
+
 	$footer-height-lg: 8rem;
 	$footer-height-sm: 12rem;
 
@@ -490,9 +504,11 @@
 	}
 	.top-overlay {
 		position: sticky;
-		top: 0;
+		top: $header-height;
 		left: 0;
 		right: 0;
+
+		transition: top 0.1s;
 
 		.leave-link-container {
 			max-width: 800px;
@@ -564,6 +580,10 @@
 					}
 				}
 			}
+		}
+
+		&.menu-open {
+			top: $header-height-lg;
 		}
 	}
 	form {
@@ -657,15 +677,13 @@
 	}
 
 	@media (max-width: 400px) {
-		.top-overlay {
-			.leave-link-container {
-				padding: 0.5rem 1rem;
-			}
-		}
 		.container {
 			padding: 0 1rem;
 		}
 		.top-overlay {
+			.leave-link-container {
+				padding: 0.5rem 1rem;
+			}
 			.leave-form-container {
 				.menu-container {
 					padding: 2rem 1rem;
@@ -676,6 +694,10 @@
 						}
 					}
 				}
+			}
+
+			&.menu-open {
+				top: $header-height-sm;
 			}
 		}
 	}

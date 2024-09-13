@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { logOut } from '../lib/auth';
 	import { logIn, signUp, resetPassword, sendSignInLink, updateUserUserName } from '../lib/auth';
 	import userStore from '../store/userStore';
@@ -7,9 +8,8 @@
 	import Modal from '../components/Modal.svelte';
 	import { modalState, closeModal, openModal, toggleState } from '../store/modalStore';
 	import messageStore from '../store/messageStore';
-	import { popupVisible, scrolling } from '../store/eventStore';
+	import { menuOpenStore, popupVisible, scrolling } from '../store/eventStore';
 
-	let menuOpen: boolean = false;
 	let error = '';
 	let warning = '';
 
@@ -125,9 +125,11 @@
 		}
 	}
 
+	$: menuOpen = $menuOpenStore;
+
 	function handleMenuToggle() {
 		console.log('Menu toggle');
-		menuOpen = !menuOpen;
+		menuOpenStore.set(!menuOpen);
 	}
 
 	$: user = $userStore;
@@ -153,7 +155,7 @@
 	$: leavePopupVisible = $popupVisible;
 
 	function handleSroll(event: any) {
-		const target = event.target;
+		const target = event.target.scrollingElement;
 		console.log(target.clientHeight, target.scrollHeight, target.scrollTop);
 		if (target.scrollTop < target.scrollHeight - target.clientHeight - 42) {
 			scrolling.set(true);
@@ -161,10 +163,20 @@
 			scrolling.set(false);
 		}
 	}
+
+	// Add the event listener when the component is mounted
+	onMount(() => {
+		window.addEventListener('scroll', handleSroll);
+
+		// Cleanup the event listener when the component is destroyed
+		return () => {
+			window.removeEventListener('scroll', handleSroll);
+		};
+	});
 </script>
 
 <div class="wrapper">
-	<div class="top-bar-container">
+	<div class="top-bar-container" on:wheel|preventDefault={() => {}}>
 		<div class="top-bar">
 			<div><h2>tincann.ing</h2></div>
 			{#if user}
@@ -202,32 +214,32 @@
 				</div>
 			{/if}
 		</div>
-	</div>
-	<div class={`${menuOpen ? 'show-menu' : ''} menu`}>
-		<div class="menu-content">
-			<p>
-				<strong
-					>Conversing Score:<span style="font-family: 'Courier New', Courier, monospace;"
-						>{` ${user?.rating?.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || '5.0'} / 10`}</span
-					></strong
-				>
-			</p>
-			<p>
-				Your Conversing Score reflects how well you interact with other tincanners. Only you can see
-				it, but your conversation partners will typically have a similar score to yours. In other
-				words, the better you are to your fellow human, the better they will be to you.
-			</p>
+		<div class={`${menuOpen ? 'show-menu' : ''} menu`}>
+			<div class="menu-content">
+				<p>
+					<strong
+						>Conversing Score:<span style="font-family: 'Courier New', Courier, monospace;"
+							>{` ${user?.rating?.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || '5.0'} / 10`}</span
+						></strong
+					>
+				</p>
+				<p>
+					Your Conversing Score reflects how well you interact with other tincanners. Only you can
+					see it, but your conversation partners will typically have a similar score to yours. In
+					other words, the better you are to your fellow human, the better they will be to you.
+				</p>
+			</div>
+			<div class="menu-content">
+				<button class="link dark" on:click={handleChangeInfo}>Change Username</button>
+				<button class="link dark" on:click={() => {}}>Reset password</button>
+				<button class="link dark" on:click={() => {}}>Close account</button>
+				<button class="link dark" on:click={handleLogOut}>Log out</button>
+			</div>
 		</div>
-		<div class="menu-content">
-			<button class="link dark" on:click={handleChangeInfo}>Change Username</button>
-			<button class="link dark" on:click={() => {}}>Reset password</button>
-			<button class="link dark" on:click={() => {}}>Close account</button>
-			<button class="link dark" on:click={handleLogOut}>Log out</button>
-		</div>
 	</div>
+
 	<div
 		class={`${menuOpen ? 'show-menu ' : ''}${leavePopupVisible ? 'no-scroll ' : ''}content-container`}
-		on:scroll={handleSroll}
 		bind:this={scrollContainer}
 	>
 		<div class={`${menuOpen ? 'show-menu' : ''} content`}>
@@ -536,17 +548,20 @@
 		height: 24px;
 	}
 	.wrapper {
-		min-height: 100vh;
-		max-height: 100vh;
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
+		position: relative;
 
 		.top-bar-container {
-			background-color: white;
+			position: sticky;
+			top: 0;
 			z-index: 20;
 
 			.top-bar {
+				background-color: white;
+				position: relative;
+				z-index: 50;
 				min-height: $top-bar-height;
 				height: 100%;
 				max-width: 800px;
@@ -560,18 +575,14 @@
 
 		.content-container {
 			display: flex;
-			flex-grow: 1;
-			overflow-x: hidden;
-			overflow-y: scroll;
 			transition: margin-top 0.1s;
 			margin-top: 4px; /* Adjust this value to match the height of the menu */
+			position: relative;
 			.content {
 				flex-grow: 1;
 				position: relative;
-				left: 0.5rem; //
 			}
 			&.no-scroll {
-				overflow-y: hidden;
 				.content {
 					left: 0; //
 				}
