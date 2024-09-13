@@ -34,11 +34,11 @@
 	import wordStore from '../store/wordStore';
 	import loadedStore from '../store/loadedStore';
 	import { openModal } from '../store/modalStore';
+	import { popupVisible, scrolling } from '../store/eventStore';
 
 	import RadioPicker from '../components/RadioPicker.svelte';
 
 	let message: string = '';
-	let leavePopupVisible: boolean = false;
 
 	function trackPageClick(text: string) {
 		if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
@@ -89,7 +89,7 @@
 	}
 
 	function toggleLeavePopup() {
-		leavePopupVisible = !leavePopupVisible;
+		popupVisible.set(!leavePopupVisible);
 	}
 
 	async function handleLeaveRoom() {
@@ -194,6 +194,8 @@
 	$: words = $wordStore;
 	$: loaded = $loadedStore;
 
+	$: leavePopupVisible = $popupVisible;
+
 	$: lastMessages = messages.length > 0 ? [messages[messages.length - 1]] : [];
 
 	$: chatting = user && user.currentRoomId && room && room.id && user.currentRoomId === room.id;
@@ -214,6 +216,8 @@
 	let optionSelected = -1;
 
 	let selectedTab = 0;
+
+	$: isScrolling = $scrolling;
 
 	onMount(async () => {
 		// console.log(chatting);
@@ -264,9 +268,10 @@
 			</div>
 		{:else if chatting && !room?.open}
 			<div class="leave-form-container">
+				<div class="backdrop" on:click={() => {}}></div>
 				<div class="menu-container">
 					<div class="menu-content">
-						<button class="modal-close" on:click={toggleLeavePopup}>&times;</button>
+						<!-- <button class="modal-close" on:click={toggleLeavePopup}>&times;</button> -->
 						<div class="menu-body">
 							<p>
 								{`${otherUserName} has ended the conversation. Would you ever want to speak with them again in life?`}
@@ -333,40 +338,42 @@
 								</tr>
 							{/each}
 						{/if}
-						<tr>
-							<td class={`${chatting ? 'grey' : ''}`}>
-								<div class="user-name">
-									{selectedTab == 0 && messages.length > 0 ? 'You' : 'Opening message'}
-								</div></td
-							>
-							<td width="99%">
-								<form>
-									<textarea
-										bind:value={message}
-										placeholder="Type a message"
-										required
-										on:keydown={handleKeydown}
-									/>
-									<div class="buttonGroup">
-										{#if chatting}
-											<button class="primary" on:click|preventDefault={handleSendMessage}
-												>Send</button
-											>
-										{:else}
-											<!-- {#if messages.length > 0}
-												<button on:click|preventDefault={handleReplyMessage}>Join</button>
-											{/if} -->
-											<button
-												class="primary"
-												on:click|preventDefault={selectedTab == 0 && messages.length > 0
-													? handleReplyMessage
-													: handleCreateRoom}>Send</button
-											>
-										{/if}
-									</div>
-								</form>
-							</td>
-						</tr>
+						{#if !leavePopupVisible && !(chatting && !room?.open)}
+							<tr class={`${chatting ? 'sticky' : ''}${isScrolling ? ' border-top' : ''}`}>
+								<td class={`${chatting ? 'grey' : ''}${isScrolling ? ' border-top' : ''}`}>
+									<div class="user-name">
+										{selectedTab == 0 && messages.length > 0 ? 'You' : 'Opening message'}
+									</div></td
+								>
+								<td width="99%" class={`${isScrolling ? 'border-top' : ''}`}>
+									<form>
+										<textarea
+											bind:value={message}
+											placeholder="Type a message"
+											required
+											on:keydown={handleKeydown}
+										/>
+										<div class="buttonGroup">
+											{#if chatting}
+												<button class="primary" on:click|preventDefault={handleSendMessage}
+													>Send</button
+												>
+											{:else}
+												<!-- {#if messages.length > 0}
+														<button on:click|preventDefault={handleReplyMessage}>Join</button>
+													{/if} -->
+												<button
+													class="primary"
+													on:click|preventDefault={selectedTab == 0 && messages.length > 0
+														? handleReplyMessage
+														: handleCreateRoom}>Send</button
+												>
+											{/if}
+										</div>
+									</form>
+								</td>
+							</tr>
+						{/if}
 					</table>
 				</div>
 			</div>
@@ -377,6 +384,9 @@
 </div>
 
 <style lang="scss">
+	$footer-height-lg: 8rem;
+	$footer-height-sm: 12rem;
+
 	em {
 		font-size: 0.75rem;
 		white-space: nowrap;
@@ -387,9 +397,19 @@
 			td {
 				padding: 0.5rem 1.5rem 0.5rem 0;
 				vertical-align: top;
+
+				&.border-top {
+					padding-top: 1.5rem;
+				}
 			}
 			td:last-child {
 				padding-right: 0;
+			}
+
+			&.border-top {
+				box-shadow:
+					inset 0 4px 0 #000000,
+					inset 0 0px 0 #000000;
 			}
 		}
 	}
@@ -402,7 +422,7 @@
 	}
 	.container {
 		background-color: white;
-		padding: 1rem 2rem;
+		padding: 0 2rem;
 		max-width: 800px;
 		margin: 0 auto;
 
@@ -451,17 +471,17 @@
 
 		.messages-wrapper {
 			&.border {
-				margin: 4rem 0;
+				margin-top: 12rem;
 				position: relative;
 			}
 
 			.messages {
-				padding: 1rem 0;
+				padding-bottom: 2rem;
 
 				&.border {
 					background-color: rgb(230, 230, 230);
 					border: solid 1px black;
-					padding: 2rem;
+					padding: 1rem;
 					position: relative;
 					z-index: 25;
 				}
@@ -469,7 +489,7 @@
 		}
 	}
 	.top-overlay {
-		position: absolute;
+		position: sticky;
 		top: 0;
 		left: 0;
 		right: 0;
@@ -491,7 +511,8 @@
 				bottom: 0;
 				left: 0;
 				right: 0;
-				background-color: rgba(14, 14, 14, 0.5);
+				// background-color: rgba(14, 14, 14, 0.5);
+				backdrop-filter: blur(5px);
 				z-index: 200;
 				cursor: pointer;
 			}
@@ -557,14 +578,16 @@
 		top: -0.5rem;
 
 		textarea {
-			height: 46px; // match button+
+			// height: 46px; // match button
+			height: 80px; // match button
 			box-sizing: border-box;
 			flex-grow: 1;
 			padding: 0.5rem;
 			border-radius: 0;
 			border: 0;
 			font-size: 1em;
-			resize: vertical; /* allows resizing only vertically */
+			// resize: vertical; /* allows resizing only vertically */
+			resize: none; /* allows resizing only vertically */
 			outline: none; /* removes the default focus outline */
 		}
 
@@ -580,6 +603,48 @@
 		color: #777777;
 	}
 
+	.sticky {
+		background-color: white;
+
+		position: sticky;
+		left: 0;
+		right: 0;
+		bottom: 0;
+
+		max-width: 800px;
+		margin: 0 auto;
+	}
+
+	@media (max-width: 864px) {
+		form {
+			.buttonGroup {
+				flex-direction: row;
+			}
+		}
+	}
+
+	@media (max-width: 600px) {
+		table {
+			tr {
+				display: flex;
+				flex-direction: column;
+
+				td:last-child {
+					padding-top: 0;
+				}
+			}
+		}
+		form {
+			flex-direction: column;
+			.buttonGroup {
+				flex-direction: row;
+			}
+		}
+	}
+
+	@media (max-width: 500px) {
+	}
+
 	@media (max-width: 400px) {
 		.top-overlay {
 			.leave-link-container {
@@ -587,7 +652,7 @@
 			}
 		}
 		.container {
-			padding: 1rem;
+			padding: 0 1rem;
 		}
 		.top-overlay {
 			.leave-form-container {
@@ -600,29 +665,6 @@
 						}
 					}
 				}
-			}
-		}
-	}
-
-	@media (max-width: 500px) {
-		tr {
-			display: flex;
-			flex-direction: column;
-		}
-		form {
-			.buttonGroup {
-				flex-direction: row;
-			}
-		}
-	}
-
-	@media (max-width: 800px) {
-		form {
-			flex-direction: column;
-		}
-		form {
-			.buttonGroup {
-				flex-direction: row;
 			}
 		}
 	}

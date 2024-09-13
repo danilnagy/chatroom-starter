@@ -6,6 +6,8 @@
 	import '../app.css';
 	import Modal from '../components/Modal.svelte';
 	import { modalState, closeModal, openModal, toggleState } from '../store/modalStore';
+	import messageStore from '../store/messageStore';
+	import { popupVisible, scrolling } from '../store/eventStore';
 
 	let menuOpen: boolean = false;
 	let error = '';
@@ -130,6 +132,35 @@
 
 	$: user = $userStore;
 	$: state = $modalState;
+	$: messages = $messageStore;
+
+	let scrollContainer: HTMLElement | null = null;
+
+	function scrollToBottom() {
+		if (scrollContainer) {
+			scrollContainer.scrollTo({
+				top: scrollContainer.scrollHeight - scrollContainer.clientHeight,
+				behavior: 'smooth'
+			});
+		}
+	}
+
+	$: if (messages.length > 0) {
+		console.log('Messages received:', messages.length);
+		scrollToBottom();
+	}
+
+	$: leavePopupVisible = $popupVisible;
+
+	function handleSroll(event: any) {
+		const target = event.target;
+		console.log(target.clientHeight, target.scrollHeight, target.scrollTop);
+		if (target.scrollTop < target.scrollHeight - target.clientHeight - 42) {
+			scrolling.set(true);
+		} else {
+			scrolling.set(false);
+		}
+	}
 </script>
 
 <div class="wrapper">
@@ -194,7 +225,11 @@
 			<button class="link dark" on:click={handleLogOut}>Log out</button>
 		</div>
 	</div>
-	<div class="content-container">
+	<div
+		class={`${menuOpen ? 'show-menu ' : ''}${leavePopupVisible ? 'no-scroll ' : ''}content-container`}
+		on:scroll={handleSroll}
+		bind:this={scrollContainer}
+	>
 		<div class={`${menuOpen ? 'show-menu' : ''} content`}>
 			<slot />
 		</div>
@@ -486,9 +521,9 @@
 		top: $top-bar-height; /* Adjust this value to match the height of your top bar */
 	}
 
-	.show-menu.content {
-		margin-top: $content-offset-lg; /* Adjust this value to match the height of the menu */
-	}
+	// .show-menu.content-container {
+	// 	margin-top: $content-offset-lg; /* Adjust this value to match the height of the menu */
+	// }
 
 	.rotate-45 {
 		transform: rotate(45deg);
@@ -528,13 +563,23 @@
 			flex-grow: 1;
 			overflow-x: hidden;
 			overflow-y: scroll;
+			transition: margin-top 0.1s;
+			margin-top: 4px; /* Adjust this value to match the height of the menu */
+			.content {
+				flex-grow: 1;
+				position: relative;
+				left: 0.5rem; //
+			}
+			&.no-scroll {
+				overflow-y: hidden;
+				.content {
+					left: 0; //
+				}
+			}
+			&.show-menu {
+				margin-top: $content-offset-lg; /* Adjust this value to match the height of the menu */
+			}
 		}
-	}
-	.content {
-		flex-grow: 1;
-		transition: margin-top 0.1s;
-		position: relative;
-		left: 0.5rem; //
 	}
 	.top-form {
 		display: flex;
@@ -551,6 +596,29 @@
 		// max-width: 210px;
 	}
 
+	@media (max-width: 864px) {
+		.wrapper {
+			.content-container {
+				.content {
+					left: 0;
+				}
+			}
+		}
+		.error {
+			justify-content: center;
+		}
+		.two-col {
+			flex-direction: column;
+			align-items: center;
+			.col {
+				.login-form {
+					.form-section {
+					}
+				}
+			}
+		}
+	}
+
 	@media (max-width: 700px) {
 		.menu {
 			top: $top-menu-offset-sm;
@@ -563,15 +631,22 @@
 			}
 		}
 
-		.show-menu.content {
+		.show-menu.content-container {
 			margin-top: $content-offset-sm; /* Adjust this value to match the height of the menu */
 		}
 	}
 
-	@media (max-width: 850px) {
-		.wrapper {
-		}
-		.container {
+	@media (max-width: 500px) {
+		.two-col {
+			.col {
+				width: 100%;
+				min-width: inherit;
+				max-width: inherit;
+				.login-form {
+					.form-section {
+					}
+				}
+			}
 		}
 	}
 
@@ -598,39 +673,6 @@
 					padding: 0 1rem;
 				}
 			}
-		}
-	}
-
-	@media (max-width: 500px) {
-		.two-col {
-			.col {
-				width: 100%;
-				min-width: inherit;
-				max-width: inherit;
-				.login-form {
-					.form-section {
-					}
-				}
-			}
-		}
-	}
-
-	@media (max-width: 800px) {
-		.error {
-			justify-content: center;
-		}
-		.two-col {
-			flex-direction: column;
-			align-items: center;
-			.col {
-				.login-form {
-					.form-section {
-					}
-				}
-			}
-		}
-		.content {
-			left: 0;
 		}
 	}
 </style>
