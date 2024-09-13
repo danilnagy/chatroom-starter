@@ -112,7 +112,9 @@
 					.filter((value) => value != undefined)
 					.map((value) => (value > 0 ? value - 2 : value - 5)) || [];
 			const MScores =
-				ratings?.map((rating) => rating.conversation).filter((value) => value != undefined) || [];
+				ratings
+					?.map((rating) => rating.conversation)
+					.filter((value) => value !== undefined && value !== -Infinity) || [];
 
 			console.log('FScores', FScores);
 			console.log('MScores', MScores);
@@ -131,7 +133,7 @@
 			await updateUserTimestamp(user);
 		}
 
-		reloadPage();
+		reloadPage(); // commment to DEBUG ratingsMScores
 	}
 
 	async function handleCreateRoom() {
@@ -163,8 +165,15 @@
 				message += '\n';
 			} else {
 				// Prevent default behavior (new line) and submit the form
-				if (chatting) handleSendMessage();
-				else handleCreateRoom();
+				if (chatting) {
+					handleSendMessage();
+				} else {
+					if (selectedTab == 0 && messages.length > 0) {
+						handleReplyMessage();
+					} else {
+						handleCreateRoom();
+					}
+				}
 			}
 		}
 	}
