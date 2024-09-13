@@ -179,7 +179,11 @@
 </script>
 
 <div class="wrapper">
-	<div class="top-bar-container" on:wheel|preventDefault={() => {}}>
+	<div
+		class="top-bar-container"
+		on:wheel|preventDefault={() => {}}
+		on:touchmove|preventDefault={() => {}}
+	>
 		<div class="top-bar">
 			<div><h2>tincann.ing</h2></div>
 			{#if user}

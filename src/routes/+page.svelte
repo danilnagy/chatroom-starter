@@ -237,7 +237,11 @@
 			</div>
 		{/if}
 		{#if leavePopupVisible}
-			<div class="leave-form-container" on:wheel|preventDefault={() => {}}>
+			<div
+				class="leave-form-container"
+				on:wheel|preventDefault={() => {}}
+				on:touchmove|preventDefault={() => {}}
+			>
 				<div class="backdrop" on:click={toggleLeavePopup}></div>
 				<div class="menu-container">
 					<div class="menu-content">
@@ -394,9 +398,9 @@
 	$top-menu-height-lg: 15rem;
 	$top-menu-height-sm: 30rem;
 
-	$header-height: $top-bar-height + $divider-height + $menu-content-gap;
-	$header-height-lg: $header-height + $top-menu-height-lg;
-	$header-height-sm: $header-height + $top-menu-height-sm;
+	$header-height: $top-bar-height + $divider-height;
+	$header-height-lg: $header-height + $menu-content-gap + $top-menu-height-lg;
+	$header-height-sm: $header-height + $menu-content-gap + $top-menu-height-sm;
 
 	$footer-height-lg: 8rem;
 	$footer-height-sm: 12rem;
