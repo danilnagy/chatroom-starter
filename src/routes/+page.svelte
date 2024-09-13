@@ -640,7 +640,7 @@
 				&.sticky {
 					td:last-child {
 						padding-top: 0.5rem;
-						padding-bottom: 5rem;
+						padding-bottom: 6rem;
 					}
 				}
 			}
