@@ -631,8 +631,12 @@
 			}
 		}
 
-		.show-menu.content-container {
-			margin-top: $content-offset-sm; /* Adjust this value to match the height of the menu */
+		.wrapper {
+			.content-container {
+				&.show-menu {
+					margin-top: $content-offset-sm; /* Adjust this value to match the height of the menu */
+				}
+			}
 		}
 	}
 
