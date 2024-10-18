@@ -201,8 +201,8 @@ onAuthStateChanged(auth, async (user) => {
 
     const newLookup: UserLookup = {};
     newLookup[user.uid] = {
-      // userName: isUser(userData) && userData.userName ? userData.userName : ''
-      userName: 'You'
+      userName: isUser(userData) && userData.userName ? userData.userName : ''
+      // userName: 'You'
     };
 
     if (isUser(userData)) {

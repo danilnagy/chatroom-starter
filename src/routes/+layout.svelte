@@ -10,6 +10,7 @@
 	import { modalState, closeModal, openModal, toggleState } from '../store/modalStore';
 	import messageStore from '../store/messageStore';
 	import { menuOpenStore, popupVisible, scrolling } from '../store/eventStore';
+	import { firebaseErrorMessages } from '../lib/firebaseErrorMessages';
 
 	let error = '';
 	let warning = '';
@@ -32,6 +33,11 @@
 		toggleState();
 	}
 
+	function getFirebaseErrorKey(errorMessage: string): string | undefined {
+		const match = errorMessage.match(/\(([^)]+)\)/);
+		return match ? match[1] : undefined;
+	}
+
 	async function handleSignUp() {
 		try {
 			await signUp(userName, email, password);
@@ -42,7 +48,8 @@
 			closeModal();
 		} catch (e) {
 			if (e instanceof Error) {
-				error = 'Sign Up Failed: ' + e.message;
+				const errorKey = getFirebaseErrorKey(e.message);
+				error = (errorKey && firebaseErrorMessages[errorKey] ? firebaseErrorMessages[errorKey] : 'Sign Up Failed: ' + e.message);
 			} else {
 				error = 'Sign Up Failed: An unknown error occurred';
 			}
@@ -59,7 +66,8 @@
 			closeModal();
 		} catch (e) {
 			if (e instanceof Error) {
-				error = 'Log In Failed: ' + e.message;
+				const errorKey = getFirebaseErrorKey(e.message);
+				error = (errorKey && firebaseErrorMessages[errorKey] ? firebaseErrorMessages[errorKey] : 'Log In Failed: ' + e.message);
 			} else {
 				error = 'Log In Failed: An unknown error occurred';
 			}
@@ -231,9 +239,7 @@
 					>
 				</p>
 				<p>
-					Your Conversing Score reflects how well you interact with other tincanners. Only you can
-					see it, but your conversation partners will typically have a similar score to yours. In
-					other words, the better you are to your fellow human, the better they will be to you.
+					Your Conversing Score reflects the quality and length of your conversations.  Only you can see it, but your conversation partners will typically have a similar score to yours.  In other words, the better you are to your fellow human, the better they will be to you.
 				</p>
 			</div>
 			<div class="menu-content">
@@ -273,13 +279,8 @@
 			<div class="two-col">
 				<div class="col">
 					<p>Please choose an anonymous username.</p>
-					<p>
-						We request an email address only to help prevent bots and other abuses off the site.
-					</p>
-					<p>
-						The address is encrypted such that we can't even see it. The only identifying data we
-						have on users is the random username and password combinations they create here.
-					</p>
+					<p>We request an email address only to help prevent bots and other abuses of the site.</p>
+					<p>Your email is encrypted such that all we see are the random username and password combinations created here.</p>
 				</div>
 				<div class="col min">
 					<div class="login-form">
@@ -289,7 +290,7 @@
 								class="dark"
 								type="text"
 								bind:value={userName}
-								placeholder="User name"
+								placeholder=""
 								on:keyup={(event) => {
 									if (event.key === 'Enter') handleSignUp();
 								}}
@@ -301,7 +302,7 @@
 								class="dark"
 								type="email"
 								bind:value={email}
-								placeholder="Email"
+								placeholder=""
 								on:keyup={(event) => {
 									if (event.key === 'Enter') handleSignUp();
 								}}
@@ -313,7 +314,7 @@
 								class="dark"
 								type="password"
 								bind:value={password}
-								placeholder="Password"
+								placeholder=""
 								on:keyup={(event) => {
 									if (event.key === 'Enter') handleSignUp();
 								}}
@@ -342,7 +343,7 @@
 								class="dark"
 								type="email"
 								bind:value={email}
-								placeholder="Email"
+								placeholder=""
 								on:keyup={(event) => {
 									if (event.key === 'Enter') handleLogIn();
 								}}
@@ -355,7 +356,7 @@
 								class="dark"
 								type="password"
 								bind:value={password}
-								placeholder="Password"
+								placeholder=""
 								on:keyup={(event) => {
 									if (event.key === 'Enter') handleLogIn();
 								}}
@@ -385,7 +386,7 @@
 								class="dark"
 								type="text"
 								bind:value={userName}
-								placeholder="User name"
+								placeholder=""
 								on:keyup={(event) => {
 									if (event.key === 'Enter') handleSignUp();
 								}}
@@ -421,7 +422,7 @@
 	$content-offset-sm: $top-menu-height-sm + $menu-content-gap;
 
 	.message-box {
-		border-radius: 0.5rem;
+		// border-radius: 0.5rem;
 		margin-bottom: 1rem;
 		padding: 1rem;
 		display: flex;
@@ -494,8 +495,8 @@
 		display: flex;
 		flex-direction: row;
 		justify-content: space-between;
-
-		background-color: #0e0e0e;
+		
+		background-color: var(--color-bg-0-dark);
 		color: #fff;
 
 		// transition: top 0.5s ease-in-out;
@@ -565,7 +566,7 @@
 			z-index: 20;
 
 			.top-bar {
-				background-color: white;
+				background-color: var(--color-bg-0);
 				position: relative;
 				z-index: 50;
 				min-height: $top-bar-height;

@@ -213,7 +213,7 @@
 
 	$: otherUserName = Object.keys(users)
 		.map((userId) => users[userId].userName || 'Anonymous')
-		.filter((userName) => userName !== 'You')[0];
+		.filter((userName) => userName !== user?.userName)[0];
 
 	$: optionsList = [
 		'Definitely!',
@@ -229,6 +229,27 @@
 	$: isScrolling = $scrolling;
 
 	$: menuOpen = $menuOpenStore;
+
+	let screenWidth = 0;
+
+	// Function to update screen width
+	const updateScreenWidth = () => {
+		screenWidth = window.innerWidth;
+	};
+
+	// Only run this code on the client
+	onMount(() => {
+		updateScreenWidth(); // Set initial screen width
+		window.addEventListener('resize', updateScreenWidth);
+
+		// Cleanup the event listener when component is destroyed
+		return () => {
+		window.removeEventListener('resize', updateScreenWidth);
+		};
+	});
+
+	$: labelReply = screenWidth < 500 ? 'Reply' : 'Reply to someone';
+	$: labelNew = screenWidth < 500 ? 'New' : 'Start a new conversation';
 
 	onMount(async () => {
 		// console.log(chatting);
@@ -295,7 +316,7 @@
 						</div>
 						<div class="button-group">
 							<button
-								class="secondary"
+								class="secondary-dark"
 								disabled={optionSelected < 0 && otherUserName != undefined ? true : undefined}
 								on:click={handleLeaveRoom}>Leave conversation</button
 							>
@@ -323,7 +344,7 @@
 									selectedTab = 0;
 								}}
 							>
-								<div class="label">Reply to someone</div>
+								<div class="label">{labelReply}</div>
 							</div>
 						{/if}
 						<div
@@ -332,7 +353,7 @@
 								selectedTab = messages.length > 0 ? 1 : 0;
 							}}
 						>
-							<div class="label">Start a new conversation</div>
+							<div class="label">{labelNew}</div>
 						</div>
 					</div>
 				{/if}
@@ -357,7 +378,7 @@
 							<tr class={`${chatting ? 'sticky' : ''}${isScrolling ? ' border-top' : ''}`}>
 								<td class={`${chatting ? 'grey' : ''}${isScrolling ? ' border-top' : ''}`}>
 									<div class="user-name">
-										{selectedTab == 0 && messages.length > 0 ? 'You' : 'Opening message'}
+										{user?.userName || (selectedTab == 0 && messages.length > 0 ? 'You' : 'Opening message')}
 									</div></td
 								>
 								<td width="99%" class={`${isScrolling ? 'border-top' : ''}`}>
@@ -448,7 +469,7 @@
 		position: relative;
 	}
 	.container {
-		background-color: white;
+		// background-color: var(--color-bg-0);
 		padding: 0 2rem;
 		max-width: 800px;
 		margin: 0 auto;
@@ -468,7 +489,7 @@
 				// width: 50%;
 				align-items: center;
 				padding: 0 1rem;
-				border: 1px solid black;
+				border: 1px solid var(--color-bg-0-dark);
 				border-bottom: none;
 				overflow: hidden;
 				position: relative;
@@ -507,7 +528,7 @@
 
 				&.border {
 					background-color: rgb(230, 230, 230);
-					border: solid 1px black;
+					border: solid 1px var(--color-bg-0-dark);
 					padding: 1rem;
 					position: relative;
 					z-index: 25;
@@ -549,7 +570,7 @@
 			.menu-container {
 				position: relative;
 				z-index: 250;
-				background-color: #0e0e0e;
+				background-color: var(--color-bg-0-dark);
 				height: 100%;
 				margin: 0;
 				padding: 2rem;
@@ -637,7 +658,8 @@
 	}
 
 	tr.sticky {
-		background-color: white;
+		background-color: var(--color-bg-0);
+		// background-color: white;
 
 		position: sticky;
 		left: 0;

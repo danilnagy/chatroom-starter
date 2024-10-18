@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { subscribeToRooms, subscribeToUsers } from '../../lib/massaging';
+	import { updateUserRoom } from '../../lib/auth';
+	import { subscribeToRooms, subscribeToUsers, updateRoom } from '../../lib/massaging';
 	import { formatTimeDifference } from '../../lib/utils';
 
 	import userStore, { type User } from '../../store/userStore';
@@ -40,6 +41,16 @@
 			// process incoming users
 			users = usersData;
 		});
+	}
+
+	async function handleCloseRoom(room: Room) {
+		await updateRoom(room.id, {
+			open: false
+		});
+	}
+
+	async function handleDropRoom(user: User) {
+		await updateUserRoom(user, '');
 	}
 
 	$: filteredRooms = selectedUser
@@ -82,11 +93,11 @@
 					<tbody>
 						{#each filteredRooms as room (room.timestamp)}
 							<tr
-								class={room.open && room.userCount === 2
+								class={`relative trigger ${room.open && room.userCount === 2
 									? 'green'
 									: room.open && room.userCount === 1
 										? 'orange'
-										: 'disabled'}
+										: 'disabled'}`}
 								on:click|preventDefault={() => onClickRoom(room)}
 							>
 								<td class={room === selectedRoom ? 'selected' : 'not-selected'}>
@@ -105,6 +116,7 @@
 								<td>
 									{room.messageCount}
 								</td>
+								<div class="buttonOverlay hide"><button on:click|stopPropagation={() => handleCloseRoom(room)}>Close</button></div>
 							</tr>
 						{/each}
 					</tbody>
@@ -120,7 +132,7 @@
 					<tbody>
 						{#each filteredUsers as user (user.timestamp)}
 							<tr
-								class={user.currentRoomId ? 'green' : ''}
+								class={`relative trigger ${user.currentRoomId ? 'green' : ''}`}
 								on:click|preventDefault={() => onClickUser(user)}
 							>
 								<td class={user === selectedUser ? 'selected' : 'not-selected'}>
@@ -130,6 +142,7 @@
 								<td>
 									{user.currentRoomId}
 								</td>
+								<div class="buttonOverlay hide"><button on:click|stopPropagation={() => handleDropRoom(user)}>Drop room</button></div>
 							</tr>
 						{/each}
 					</tbody>
@@ -144,6 +157,24 @@
 </div>
 
 <style lang="scss">
+	.hide {
+	visibility: hidden;
+	}
+	.trigger:hover>.hide {
+	visibility: visible;
+	}
+	.buttonOverlay {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		right: 0;
+		z-index: 100;
+		display: flex;
+
+	}
+	.relative {
+		position: relative;
+	}
 	em {
 		font-size: 0.75rem;
 		white-space: nowrap;
@@ -170,7 +201,9 @@
 		padding: 2rem 0;
 	}
 	.container {
-		background-color: white;
+		background-color: var(--color-bg-0);
+		font-size: 12px;
+		font-family: monospace;
 		padding: 2rem 0;
 		margin: 0 auto;
 		.two-col {
@@ -216,7 +249,7 @@
 	.not-selected {
 	}
 	.selected {
-		border-left: 5px solid rgb(0, 0, 0);
+		border-left: 5px solid var(--color-text);
 	}
 
 	@media (max-width: 700px) {
