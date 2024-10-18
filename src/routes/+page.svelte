@@ -89,6 +89,7 @@
 	}
 
 	function toggleLeavePopup() {
+		menuOpenStore.set(false);
 		popupVisible.set(!leavePopupVisible);
 	}
 
@@ -385,7 +386,7 @@
 									<form>
 										<textarea
 											bind:value={message}
-											placeholder="Type a message"
+											placeholder=""
 											required
 											on:keydown={handleKeydown}
 										/>

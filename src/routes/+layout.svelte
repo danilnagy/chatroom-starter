@@ -138,6 +138,7 @@
 
 	function handleMenuToggle() {
 		console.log('Menu toggle');
+		popupVisible.set(false);
 		menuOpenStore.set(!menuOpen);
 	}
 

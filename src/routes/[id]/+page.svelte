@@ -83,7 +83,7 @@
 			<form on:submit|preventDefault={handleSendMessage}>
 				<textarea
 					bind:value={message}
-					placeholder="Type a message"
+					placeholder=""
 					required
 					on:keydown={handleKeydown}
 				/>
