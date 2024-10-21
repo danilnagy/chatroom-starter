@@ -16,7 +16,8 @@
 		parseSignInLink,
 		updateUserRoom,
 		updateUserRating,
-		updateUserTimestamp
+		updateUserTimestamp,
+		sendVerificationEmail
 	} from '../lib/auth';
 	import {
 		calcConversationScore,
@@ -39,12 +40,21 @@
 	import RadioPicker from '../components/RadioPicker.svelte';
 
 	let message: string = '';
+	let showWarning: boolean = true;
+	let showResendLink: boolean = true;
 
 	function trackPageClick(text: string) {
 		if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
 			window.gtag('event', 'click', {
 				text
 			});
+		}
+	}
+
+	async function handleSendVerificationEmail(){
+		if (user) {
+			sendVerificationEmail(user.firebaseUser)
+			showResendLink = false;
 		}
 	}
 
@@ -177,6 +187,10 @@
 				}
 			}
 		}
+	}
+
+	function clearWarning() {
+		showWarning = false;
 	}
 
 	let firstUser: boolean = true;
@@ -329,6 +343,19 @@
 	</div>
 	<div class="container">
 		{#if loaded}
+			{#if user && !user?.verified && showWarning}
+				<div class="message-box error">
+					<div class="message">
+						<div>Please check your email for a verification link and click the link to verify your account.</div>
+						{#if showResendLink}
+							<button class="link" on:click={handleSendVerificationEmail}>Resend email</button>
+						{:else}
+							<button class="link" disabled>Email sent</button>
+						{/if}
+					</div>
+					<button class="no-border-clear" on:click={clearWarning}>&times;</button>
+				</div>
+			{/if}
 			{#if !user}
 				<p>
 					Share anything you want in an anonymous 1-on-1 conversation, from how your day went to
@@ -392,15 +419,20 @@
 										/>
 										<div class="buttonGroup">
 											{#if chatting}
-												<button class="primary" on:click|preventDefault={handleSendMessage}
-													>Send</button
+												<button 
+													class="primary" 
+													disabled={!user?.verified}
+													on:click|preventDefault={handleSendMessage}
 												>
+													Send
+												</button>
 											{:else}
 												<!-- {#if messages.length > 0}
 														<button on:click|preventDefault={handleReplyMessage}>Join</button>
 													{/if} -->
 												<button
 													class="primary"
+													disabled={!user?.verified}
 													on:click|preventDefault={selectedTab == 0 && messages.length > 0
 														? handleReplyMessage
 														: handleCreateRoom}>Send</button
@@ -435,6 +467,27 @@
 
 	$footer-height-lg: 8rem;
 	$footer-height-sm: 12rem;
+
+	.message-box {
+		margin: 1rem 0;
+		padding: 0.25rem;
+		display: flex;
+		align-items: flex-start;
+		.message {
+			flex-grow: 1;
+			padding: 0.75rem;
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 1rem;
+		}
+	}
+	.warning {
+		background-color: rgba(255, 234, 0, 0.25);
+	}
+	.error {
+		background-color: rgba(255, 0, 0, 0.25);
+	}
 
 	em {
 		font-size: 0.75rem;

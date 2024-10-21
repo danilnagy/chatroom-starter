@@ -1,18 +1,33 @@
 import { auth, db } from './firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendSignInLinkToEmail, getAuth, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendEmailVerification, sendPasswordResetEmail, sendSignInLinkToEmail, getAuth, isSignInWithEmailLink, signInWithEmailLink, type User as FirebaseUser } from 'firebase/auth';
 import { collection, doc, addDoc, getDoc, setDoc, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
 import userStore, { type User } from '../store/userStore';
 import usersStore, { type UserLookup } from '../store/usersStore';
 import { gHome } from '../lib/utils';
 
+export async function sendVerificationEmail(user: FirebaseUser): Promise<void> {
+  await sendEmailVerification(user);
+  console.log("Verification email sent!");
+}
+
 export async function signUp(userName: string, email: string, password: string): Promise<void> {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
-  const uid = user.uid;
 
+  await sendVerificationEmail(user);
+
+  const uid = user.uid;
   const userRef = doc(db, 'users', uid);
   await setDoc(userRef, { uid, userName, currentRoomId: '', timestamp: Date.now(), rating: 5 });
+
+  userStore.update((user) => {
+    if (user) {
+      return { ...user, userName }; // Update only `userName`
+    }
+    return user; // Return the original user object if it's `null`
+  })
+  
   console.log(`Created new user document for user ${uid}`);
 
 }
@@ -101,9 +116,10 @@ export async function getUserData(uid: string): Promise<User | null> {
       return userData;
     } else {
       // Create a new user document if it does not exist
-      await setDoc(userRef, { uid, currentRoomId: '', timestamp: Date.now() });
-      console.log(`Created new user document for user ${uid}`);
-      return { uid, currentRoomId: '', timestamp: Date.now() } as User;
+      // await setDoc(userRef, { uid, currentRoomId: '', timestamp: Date.now() });
+      // console.log(`Created new user document for user ${uid}`);
+      // return { uid, currentRoomId: '', timestamp: Date.now() } as User;
+      return null;
     }
   } catch (error) {
     console.error(`Failed to fetch data for user ${uid}:`, error);
@@ -196,6 +212,8 @@ onAuthStateChanged(auth, async (user) => {
     userStore.set({
       email: user.email!,
       uid: user.uid,
+      verified: user.emailVerified,
+      firebaseUser: user,
       ...userData
     });
 

@@ -19,7 +19,8 @@
 	let email: string = '';
 	let password: string = '';
 
-	let hideSendLoginLink: boolean = false;
+	let hideSendLoginLink: boolean = true;
+	let resetPasswordSent: boolean = false;
 
 	function clearWarning() {
 		warning = '';
@@ -67,25 +68,28 @@
 		} catch (e) {
 			if (e instanceof Error) {
 				const errorKey = getFirebaseErrorKey(e.message);
-				error = (errorKey && firebaseErrorMessages[errorKey] ? firebaseErrorMessages[errorKey] : 'Log In Failed: ' + e.message);
+								error = (errorKey && firebaseErrorMessages[errorKey] ? firebaseErrorMessages[errorKey] : 'Log In Failed: ' + e.message);
+				hideSendLoginLink = ["auth/invalid-email"].includes(errorKey || "");
 			} else {
 				error = 'Log In Failed: An unknown error occurred';
 			}
-			hideSendLoginLink = false;
 		}
 	}
 
 	async function handleResetPassword() {
-		try {
-			await resetPassword(email);
-			error = '';
-			warning = `Reset password link was sent to [${email}]`;
-		} catch (e) {
-			if (e instanceof Error) {
-				error = 'Reset password failed: ' + e.message;
-			} else {
-				error = 'Reset password failed: An unknown error occurred';
+		if (user?.email){
+			try {
+				await resetPassword(user.email);
+				error = '';
+				warning = `Reset password link was sent to [${user.email}]`;
+			} catch (e) {
+				if (e instanceof Error) {
+					error = 'Reset password failed: ' + e.message;
+				} else {
+					error = 'Reset password failed: An unknown error occurred';
+				}
 			}
+			resetPasswordSent = true;
 		}
 	}
 
@@ -245,8 +249,11 @@
 			</div>
 			<div class="menu-content">
 				<button class="link dark" on:click={handleChangeInfo}>Change Username</button>
-				<button class="link dark" on:click={() => {}}>Reset password</button>
-				<button class="link dark" on:click={() => {}}>Close account</button>
+				{#if resetPasswordSent}
+					<button class="link dark" disabled>Link sent</button>
+				{:else}
+					<button class="link dark" on:click={handleResetPassword}>Reset password</button>
+				{/if}
 				<button class="link dark" on:click={handleLogOut}>Log out</button>
 			</div>
 		</div>
@@ -435,6 +442,10 @@
 		.message {
 			flex-grow: 1;
 			padding: 0.75rem;
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 1rem;
 		}
 	}
 	.warning {

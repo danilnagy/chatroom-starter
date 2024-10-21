@@ -136,6 +136,14 @@ button.no-border-dark {
 	font-size: 1.5rem;
 	line-height: 1rem;
 }
+button.no-border-clear {
+	background-color: rgba(0, 0, 0, 0);
+	border: none;
+	min-width: 0;
+	/* color: black; */
+	font-size: 1.5rem;
+	line-height: 1rem;
+}
 
 button.dark {
 	background-color: rgba(0, 0, 0, 0);
