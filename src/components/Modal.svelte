@@ -89,6 +89,8 @@
 	@media (max-width: 700px) {
 		.modal-container {
 			max-width: 100vw;
+			max-height: 100vh;
+			overflow-y: auto;
 		}
 		.modal-content {
 			padding: 2rem 1rem;

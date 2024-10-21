@@ -269,10 +269,12 @@
 		{/if}
 		{#if error}
 			<div class="message-box error">
-				<div class="message">{error}</div>
-				{#if state.state === 'LOGIN' && !hideSendLoginLink}
-					<button class="link dark" on:click={handleSendSignInLink}>Send login link</button>
-				{/if}
+				<div class="message">
+					{error}
+					{#if state.state === 'LOGIN' && !hideSendLoginLink}
+						<button class="link dark" on:click={handleSendSignInLink}>Send login link</button>
+					{/if}
+				</div>
 				<button class="no-border-dark" on:click={clearError}>&times;</button>
 			</div>
 		{/if}
@@ -425,13 +427,14 @@
 	.message-box {
 		// border-radius: 0.5rem;
 		margin-bottom: 1rem;
-		padding: 1rem;
+		padding: 0.25rem;
 		display: flex;
 		// flex-wrap: wrap;
-		align-items: center;
+		align-items: flex-start;
 		// justify-content: space-between;
 		.message {
 			flex-grow: 1;
+			padding: 0.75rem;
 		}
 	}
 	.warning {
