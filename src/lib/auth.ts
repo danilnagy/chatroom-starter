@@ -4,7 +4,10 @@ import { collection, doc, addDoc, getDoc, setDoc, query, orderBy, limit, getDocs
 
 import userStore, { type User } from '../store/userStore';
 import usersStore, { type UserLookup } from '../store/usersStore';
+import { modalState } from '../store/modalStore';
+
 import { gHome } from '../lib/utils';
+import { tick } from 'svelte';
 
 export async function sendVerificationEmail(user: FirebaseUser): Promise<void> {
   await sendEmailVerification(user);
@@ -205,17 +208,28 @@ function isUser(obj: any): obj is User {
   return obj && typeof obj === 'object' && 'userName' in obj;
 }
 
+// Subscribe to modalState store to get the callback function
+let callback: Function;
+
+// Subscribe to the store
+modalState.subscribe(value => {
+  callback = value.callback;
+});
+
 // Listen to authentication state changes
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     const userData: User | {} = await getUserData(user.uid) || {}
-    userStore.set({
+
+    const newUser = {
       email: user.email!,
       uid: user.uid,
       verified: user.emailVerified,
       firebaseUser: user,
       ...userData
-    });
+    }
+
+    userStore.set(newUser);
 
     const newLookup: UserLookup = {};
     newLookup[user.uid] = {
@@ -230,6 +244,18 @@ onAuthStateChanged(auth, async (user) => {
           ...newLookup
         };
       });
+
+      if (user.emailVerified){
+        if (!userData.currentRoomId && callback) {
+          await tick();
+          callback(newUser, true);
+        } else {
+          console.warn(`User ${user.email} already assigned to room`);
+          callback(newUser, false);
+        }
+      } else {
+        console.warn("New user not verified, skipping callback");
+      }
     }
 
   } else {

@@ -28,7 +28,7 @@
 		reloadPage
 	} from '../lib/utils';
 
-	import userStore from '../store/userStore';
+	import userStore, { type User } from '../store/userStore';
 	import usersStore from '../store/usersStore';
 	import roomStore from '../store/roomStore';
 	import messageStore, { getMetrics } from '../store/messageStore';
@@ -78,7 +78,7 @@
 	// joining room
 	async function handleReplyMessage() {
 		if (room) {
-			if (user) {
+			const doReplyMessage = async (user: User) => {
 				const cleanedMessage = removeHtmlTags(message);
 				if (cleanedMessage.length > 0) {
 					await updateUserRoom(user, room.id);
@@ -91,9 +91,16 @@
 
 					trackPageClick(cleanedMessage);
 				}
+			}
+			if (user) {
+				doReplyMessage(user);
 				message = '';
 			} else {
-				openModal('SIGNUP', async () => {});
+				openModal('LOGIN', async (newUser: User, run: boolean) => {
+					if (run)
+						doReplyMessage(newUser);
+					message = '';
+				});
 			}
 		}
 	}
@@ -148,7 +155,8 @@
 	}
 
 	async function handleCreateRoom() {
-		if (user) {
+		
+		const doCreateRoom = async (user: User) => {
 			const cleanedMessage = removeHtmlTags(message);
 			if (cleanedMessage.length > 0) {
 				const newRoomId = await createRoom('');
@@ -162,9 +170,16 @@
 
 				reloadPage();
 			}
+		}
+		if (user) {
+			doCreateRoom(user);
 			message = '';
 		} else {
-			openModal('SIGNUP', async () => {});
+			openModal('LOGIN', async (newUser: User, run: boolean) => {
+				if (run)
+					doCreateRoom(newUser);
+				message = '';
+			});
 		}
 	}
 
@@ -421,7 +436,7 @@
 											{#if chatting}
 												<button 
 													class="primary" 
-													disabled={!user?.verified}
+													disabled={user && !user.verified}
 													on:click|preventDefault={handleSendMessage}
 												>
 													Send
@@ -432,7 +447,7 @@
 													{/if} -->
 												<button
 													class="primary"
-													disabled={!user?.verified}
+													disabled={user && !user.verified}
 													on:click|preventDefault={selectedTab == 0 && messages.length > 0
 														? handleReplyMessage
 														: handleCreateRoom}>Send</button
