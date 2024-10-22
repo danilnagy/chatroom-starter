@@ -457,7 +457,8 @@
 		background-color: rgba(255, 234, 0, 0.25);
 	}
 	.error {
-		background-color: rgba(255, 0, 0, 0.25);
+		// background-color: rgba(255, 0, 0, 0.25);
+		background-color: #00FFDD40;
 	}
 	.two-col {
 		display: flex;
