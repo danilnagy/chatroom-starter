@@ -41,6 +41,10 @@
 
 	async function handleSignUp() {
 		try {
+			// Check if userName is empty
+			if (!userName) {
+				throw new Error('Username is required');
+			}
 			await signUp(userName, email, password);
 			userName = '';
 			email = '';
@@ -301,6 +305,7 @@
 								type="text"
 								bind:value={userName}
 								placeholder=""
+    							maxlength="10"
 								on:keyup={(event) => {
 									if (event.key === 'Enter') handleSignUp();
 								}}
