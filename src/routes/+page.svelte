@@ -42,6 +42,16 @@
 	let message: string = '';
 	let showWarning: boolean = true;
 	let showResendLink: boolean = true;
+	let textareaElement: HTMLTextAreaElement | null = null; // Initialize as null
+
+	// Reactive statement to focus the textarea right after it's created
+	$: if (textareaElement) {
+		// Use a timeout to make sure it's in the DOM and available
+		setTimeout(() => {
+			if (textareaElement)
+				textareaElement.focus();
+		}, 0);
+	}
 
 	function trackPageClick(text: string) {
 		if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
@@ -274,7 +284,7 @@
 
 		// Cleanup the event listener when component is destroyed
 		return () => {
-		window.removeEventListener('resize', updateScreenWidth);
+			window.removeEventListener('resize', updateScreenWidth);
 		};
 	});
 
@@ -418,16 +428,17 @@
 							{/each}
 						{/if}
 						{#if !leavePopupVisible && !(chatting && !room?.open)}
-							<tr class={`${chatting ? 'sticky' : ''}${isScrolling ? ' border-top' : ''}`}>
-								<td class={`${chatting ? 'grey' : ''}${isScrolling ? ' border-top' : ''}`}>
+							<tr class={`${chatting ? 'sticky border-top' : ''}`}>
+								<td class={`${chatting ? 'grey border-top' : ''}`}>
 									<div class="user-name">
 										{user?.userName || (selectedTab == 0 && messages.length > 0 ? 'You' : 'Opening message')}
 									</div></td
 								>
-								<td width="99%" class={`${isScrolling ? 'border-top' : ''}`}>
+								<td width="100%" class={`${isScrolling ? 'border-top' : ''}`}>
 									<form>
 										<textarea
 											bind:value={message}
+											bind:this={textareaElement}
 											placeholder=""
 											required
 											on:keydown={handleKeydown}
@@ -512,7 +523,7 @@
 		width: 100%;
 		tr {
 			td {
-				padding: 0.5rem 1.5rem 0.5rem 0;
+				padding: 1.5rem 2rem 0.5rem 0;
 				vertical-align: top;
 
 				&.border-top {
@@ -545,9 +556,9 @@
 
 		.tabs {
 			position: absolute;
-			top: -3rem;
+			top: -4rem;
 			left: 0;
-			height: 3rem;
+			height: 4rem;
 			display: flex;
 			width: 100%;
 
@@ -557,7 +568,7 @@
 				flex-grow: 1;
 				// width: 50%;
 				align-items: center;
-				padding: 0 1rem;
+				padding: 0 1.5rem;
 				border: 1px solid var(--color-bg-0-dark);
 				border-bottom: none;
 				overflow: hidden;
@@ -598,9 +609,20 @@
 				&.border {
 					background-color: rgb(230, 230, 230);
 					border: solid 1px var(--color-bg-0-dark);
-					padding: 1rem;
+					padding: 1.5rem;
 					position: relative;
 					z-index: 25;
+
+					textarea {
+						background-color: white;
+						height: 48px; // match button
+					}
+
+					button {
+						height: 48px;
+						width: 120px;
+						max-width: 120px;
+					}
 				}
 			}
 		}
@@ -694,7 +716,7 @@
 		width: calc(100% + 0.5rem);
 		display: flex;
 		justify-content: flex-end;
-		gap: 1rem;
+		// gap: 1rem;
 
 		position: relative;
 		left: -0.5rem;
@@ -702,6 +724,7 @@
 
 		textarea {
 			// height: 46px; // match button
+			background-color: rgba(255,255,255,0);
 			height: 80px; // match button
 			box-sizing: border-box;
 			flex-grow: 1;
@@ -730,7 +753,7 @@
 		background-color: var(--color-bg-0);
 		// background-color: white;
 
-		position: sticky;
+		position: fixed;
 		left: 0;
 		right: 0;
 		bottom: 0;
@@ -749,6 +772,9 @@
 				flex-direction: row;
 			}
 		}
+		tr.sticky {
+			padding: 0 2rem;
+		}
 	}
 
 	@media (max-width: 600px) {
@@ -761,12 +787,12 @@
 					padding-bottom: 0.5rem;
 				}
 
-				&.sticky {
-					td:last-child {
-						padding-top: 0.5rem;
-						padding-bottom: 8rem;
-					}
-				}
+				// &.sticky {
+				// 	td:last-child {
+				// 		padding-top: 0.5rem;
+				// 		padding-bottom: 8rem;
+				// 	}
+				// }
 			}
 		}
 		form {
