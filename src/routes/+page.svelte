@@ -456,13 +456,14 @@
 							{/each}
 						{/if}
 						{#if !leavePopupVisible && !(chatting && !room?.open)}
+							<tr><td class={`${chatting ? 'bottom-spacer' : ''}`}></td></tr>
 							<tr class={`${chatting ? 'sticky border-top' : ''}`}>
 								<td class={`${chatting ? 'grey border-top' : ''}`}>
 									<div class="user-name">
 										{user?.userName || (selectedTab == 0 && messages.length > 0 ? 'You' : 'Opening message')}
 									</div></td
 								>
-								<td width="100%" class={`${chatting ? 'border-top' : ''}`}>
+								<td width="100%" class={`${chatting ? 'message-top' : ''}`}>
 									<form>
 										<textarea
 											bind:value={message}
@@ -557,6 +558,14 @@
 
 				&.border-top {
 					padding-top: 1.5rem;
+				}
+
+				&.message-top {
+					padding-top: 1.5rem;
+				}
+
+				&.bottom-spacer {
+					height: 120px;
 				}
 			}
 			td:last-child {
@@ -816,6 +825,12 @@
 					padding-bottom: 0.5rem;
 				}
 
+				td {
+					&.bottom-spacer {
+						height: 200px;
+					}
+				}
+
 				// &.sticky {
 				// 	td:last-child {
 				// 		padding-top: 0.5rem;
@@ -839,6 +854,9 @@
 		.container {
 			padding: 0 1rem;
 		}
+		tr.sticky {
+			padding: 0 1rem;
+		}
 		.top-overlay {
 			.leave-link-container {
 				padding: 0.5rem 1rem;
@@ -857,6 +875,15 @@
 
 			&.menu-open {
 				top: $header-height-sm;
+			}
+		}
+		table {
+			tr {
+				td {
+					&.message-top {
+						padding-top: 0.5rem;
+					}
+				}
 			}
 		}
 	}

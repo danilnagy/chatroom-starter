@@ -84,7 +84,7 @@ export function parseSignInLink() {
     if (!email) {
       // User opened the link on a different device. To prevent session fixation
       // attacks, ask the user to provide the associated email again. For example:
-      email = window.prompt('Please provide your email for confirmation');
+      email = window.prompt('Please enter your email address to confirm');
     }
     console.log("email", email);
     // The client SDK will parse the code from the link for you.
@@ -204,21 +204,17 @@ export async function updateUserRating(userId: string, rating: number): Promise<
   }
 }
 
-export async function deleteUserAccount(user: FirebaseUser, email: string, password: string): Promise<void> {
-  try {
-    // const credential = EmailAuthProvider.credential(email, password);
-    // await reauthenticateWithCredential(user, credential);
+export async function reAuth(user: FirebaseUser, email: string, password: string): Promise<void> {
+  const credential = EmailAuthProvider.credential(email, password);
+  await reauthenticateWithCredential(user, credential);
+}
+
+
+export async function deleteUserAccount(user: FirebaseUser): Promise<void> {
     await deleteUser(user);
     console.log(`Deleted user account for user ${user.uid}`);
     userStore.set(null);
     usersStore.set({});
-  } catch (error: any) {
-    if (error.code === 'auth/requires-recent-login') {
-      console.error('User must reauthenticate before deleting their account.');
-    } else {
-      console.error(`Failed to delete user account for user ${user.uid}:`, error);
-    }
-  }
 }
 
 function isUser(obj: any): obj is User {

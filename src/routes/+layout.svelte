@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { browser } from '$app/environment'; // Import the browser environment flag
-	import { logIn, logOut, signUp, resetPassword, sendSignInLink, deleteUserAccount, updateUserUserName } from '../lib/auth';
-	import userStore from '../store/userStore';
+	import { logIn, logOut, signUp, resetPassword, sendSignInLink, reAuth, deleteUserAccount, updateUserRoom, updateUserTimestamp, updateUserUserName } from '../lib/auth';
+	import { updateRoom } from '../lib/massaging';
+	import userStore, { type User } from '../store/userStore';
+	import roomStore from '../store/roomStore';
 	import { reloadPage, validateEmail } from '../lib/utils';
 	import '../app.css';
 	import Modal from '../components/Modal.svelte';
@@ -128,16 +130,38 @@
 		}
 	}
 
+
+	async function handleLeaveRoom() {
+		if (user) {
+			await updateUserRoom(user, '');
+			await updateUserTimestamp(user);
+		}
+		if (room){
+			await updateRoom(room.id, {
+				// userCount: 0,
+				open: false
+			});
+		}
+	}
+
+	function handleClickDeleteAccount() {
+		openModal('DELETEACCOUNT', () => {});
+	}
+
 	async function handleDeleteAccount() {
 		if (user?.firebaseUser){
 			try {
-				await deleteUserAccount(user?.firebaseUser, "", "");
+				await reAuth(user?.firebaseUser, email, password);
+				await handleLeaveRoom();
+				await deleteUserAccount(user?.firebaseUser);
 				reloadPage();
 			} catch (e) {
 				if (e instanceof Error) {
-					alert('Delete Account Failed: ' + e.message);
+					const errorKey = getFirebaseErrorKey(e.message);
+									error = (errorKey && firebaseErrorMessages[errorKey] ? firebaseErrorMessages[errorKey] : 'Delete Account Failed: ' + e.message);
+					hideSendLoginLink = ["auth/invalid-email"].includes(errorKey || "");
 				} else {
-					alert('Delete Account Failed: An unknown error occurred');
+					error = 'Delete Account Failed: An unknown error occurred';
 				}
 			}
 		}
@@ -165,6 +189,7 @@
 	}
 
 	$: user = $userStore;
+	$: room = $roomStore;
 	$: state = $modalState;
 	$: messages = $messageStore;
 
@@ -272,7 +297,7 @@
 				{:else}
 					<button class="link dark" on:click={handleResetPassword}>Reset Password</button>
 				{/if}
-				<button class="link dark" on:click={handleDeleteAccount}>Close Account</button>
+				<button class="link dark" on:click={handleClickDeleteAccount}>Close Account</button>
 				<button class="link dark" on:click={handleLogOut}>Log Out</button>
 			</div>
 		</div>
@@ -290,18 +315,22 @@
 		{#if warning}
 			<div class="message-box warning">
 				<div class="message">{warning}</div>
-				<button class="no-border-dark" on:click={clearWarning}>&times;</button>
+				<div class="close-container">
+					<button class="no-border-dark" on:click={clearWarning}>&times;</button>
+				</div>
 			</div>
 		{/if}
 		{#if error}
 			<div class="message-box error">
 				<div class="message">
 					{error}
-					{#if state.state === 'LOGIN' && !hideSendLoginLink}
+					{#if ['LOGIN', 'DELETEACCOUNT'].includes(state.state) && !hideSendLoginLink}
 						<button class="link dark" on:click={handleSendSignInLink}>Send login link</button>
 					{/if}
 				</div>
-				<button class="no-border-dark" on:click={clearError}>&times;</button>
+				<div class="close-container">
+					<button class="no-border-dark" on:click={clearError}>&times;</button>
+				</div>
 			</div>
 		{/if}
 		{#if state.state === 'SIGNUP'}
@@ -405,6 +434,50 @@
 					</div>
 				</div>
 			</div>
+		{:else if state.state === 'DELETEACCOUNT'}
+			<div class="two-col">
+				<div class="col">
+					<p>Are you sure you want to delete your account?</p>
+					<p>This action cannot be reversed.</p>
+					<p>Please enter your login information to confirm.</p>
+				</div>
+				<div class="col min">
+					<div class="login-form">
+						<div class="form-section">
+							<div class="label">Email</div>
+							<input
+								class="dark"
+								type="email"
+								bind:value={email}
+								placeholder=""
+								on:keyup={(event) => {
+									if (event.key === 'Enter') handleDeleteAccount();
+								}}
+							/>
+						</div>
+
+						<div class="form-section">
+							<div class="label">Password</div>
+							<input
+								class="dark"
+								type="password"
+								bind:value={password}
+								placeholder=""
+								on:keyup={(event) => {
+									if (event.key === 'Enter') handleDeleteAccount();
+								}}
+							/>
+						</div>
+						<div class="form-section">
+							<div class="label"></div>
+							<div class="button-group">
+								<button class="link dark" on:click={closeModal}><strong>Cancel</strong></button>
+								<button class="primary-dark" on:click={handleDeleteAccount}>Confirm</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		{:else if state.state === 'CHANGEINFO'}
 			<div class="two-col">
 				<!-- <div class="col"></div> -->
@@ -456,9 +529,11 @@
 		margin-bottom: 1rem;
 		padding: 0.25rem;
 		display: flex;
+
 		// flex-wrap: wrap;
-		align-items: flex-start;
+		align-items: stretch;
 		// justify-content: space-between;
+		min-height: 75px;
 		.message {
 			flex-grow: 1;
 			padding: 0.75rem;
@@ -466,6 +541,9 @@
 			flex-wrap: wrap;
 			align-items: center;
 			gap: 1rem;
+		}
+		.close-container {
+			height: 100%;
 		}
 	}
 	.warning {
