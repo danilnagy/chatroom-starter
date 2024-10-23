@@ -1,5 +1,5 @@
 import { auth, db } from './firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendEmailVerification, sendPasswordResetEmail, sendSignInLinkToEmail, getAuth, isSignInWithEmailLink, signInWithEmailLink, type User as FirebaseUser } from 'firebase/auth';
+import { createUserWithEmailAndPassword, deleteUser, EmailAuthProvider, signInWithEmailAndPassword, reauthenticateWithCredential, onAuthStateChanged, signOut, sendEmailVerification, sendPasswordResetEmail, sendSignInLinkToEmail, getAuth, isSignInWithEmailLink, signInWithEmailLink, type User as FirebaseUser } from 'firebase/auth';
 import { collection, doc, addDoc, getDoc, setDoc, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
 import userStore, { type User } from '../store/userStore';
@@ -201,6 +201,23 @@ export async function updateUserRating(userId: string, rating: number): Promise<
     console.log(`Updated rating for user ${userId} to ${rating}`);
   } catch (error) {
     console.error(`Failed to update currentRoomId for user ${userId}:`, error);
+  }
+}
+
+export async function deleteUserAccount(user: FirebaseUser, email: string, password: string): Promise<void> {
+  try {
+    // const credential = EmailAuthProvider.credential(email, password);
+    // await reauthenticateWithCredential(user, credential);
+    await deleteUser(user);
+    console.log(`Deleted user account for user ${user.uid}`);
+    userStore.set(null);
+    usersStore.set({});
+  } catch (error: any) {
+    if (error.code === 'auth/requires-recent-login') {
+      console.error('User must reauthenticate before deleting their account.');
+    } else {
+      console.error(`Failed to delete user account for user ${user.uid}:`, error);
+    }
   }
 }
 

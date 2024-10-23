@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { browser } from '$app/environment'; // Import the browser environment flag
-	import { logOut } from '../lib/auth';
-	import { logIn, signUp, resetPassword, sendSignInLink, updateUserUserName } from '../lib/auth';
+	import { logIn, logOut, signUp, resetPassword, sendSignInLink, deleteUserAccount, updateUserUserName } from '../lib/auth';
 	import userStore from '../store/userStore';
 	import { reloadPage, validateEmail } from '../lib/utils';
 	import '../app.css';
@@ -126,6 +125,21 @@
 		if (user) {
 			await updateUserUserName(user, userName);
 			reloadPage();
+		}
+	}
+
+	async function handleDeleteAccount() {
+		if (user?.firebaseUser){
+			try {
+				await deleteUserAccount(user?.firebaseUser, "", "");
+				reloadPage();
+			} catch (e) {
+				if (e instanceof Error) {
+					alert('Delete Account Failed: ' + e.message);
+				} else {
+					alert('Delete Account Failed: An unknown error occurred');
+				}
+			}
 		}
 	}
 
@@ -256,9 +270,10 @@
 				{#if resetPasswordSent}
 					<button class="link dark" disabled>Link sent</button>
 				{:else}
-					<button class="link dark" on:click={handleResetPassword}>Reset password</button>
+					<button class="link dark" on:click={handleResetPassword}>Reset Password</button>
 				{/if}
-				<button class="link dark" on:click={handleLogOut}>Log out</button>
+				<button class="link dark" on:click={handleDeleteAccount}>Close Account</button>
+				<button class="link dark" on:click={handleLogOut}>Log Out</button>
 			</div>
 		</div>
 	</div>
