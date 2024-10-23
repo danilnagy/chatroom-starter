@@ -218,30 +218,52 @@
 		showWarning = false;
 	}
 
-	let firstUser: boolean = true;
+    let user: User | null;
+    let firstUser = true;
+    let userCheckTimeout: number | null = null;
+	
+	$: user = $userStore;
 
-	// Reactive statement that runs when `user` is set
-	$: if (user?.uid) {
-		console.log('Loaded user', user);
-		if (firstUser) {
-			firstUser = false;
-			fetchRoom(user);
-		}
-	} else {
-		setTimeout(() => {
-			if (!user?.uid) {
-				console.log('No user');
-				fetchRoom(null);
-			}
-		}, 1000);
+	let localLoaded: boolean = false;
+
+	// Define an async function to handle the async call
+    async function loadRoom(user: User | null, callback: Function) {
+        try {
+            await fetchRoom(user, callback); // Call the async fetch function			
+            console.log('Room fetched for user:', user?.uid);
+        } catch (error) {
+            console.error('Error fetching room:', error);
+        }
+    }
+
+	$: {
+		console.log("user", user)
 	}
 
-	$: user = $userStore;
+	 // Reactive statement to handle logged-in users
+	 $: if (user?.uid) {
+        console.log('Loaded user', user);
+        if (firstUser) {
+            firstUser = false;
+            loadRoom(user, () => { localLoaded = true });
+        }
+
+        // Clear the timeout if the user is authenticated
+        if (userCheckTimeout !== null) {
+            clearTimeout(userCheckTimeout);
+        }
+    }
+	// Function to handle when user remains null
+    function handleUserNeverAuthenticated() {
+		console.log('No user');
+		loadRoom(null, () => { localLoaded = true });
+        // Add any additional logic you want here
+    }
+
 	$: users = $usersStore;
 	$: room = $roomStore;
 	$: messages = $messageStore;
 	$: words = $wordStore;
-	$: loaded = $loadedStore;
 
 	$: leavePopupVisible = $popupVisible;
 
@@ -294,13 +316,19 @@
 	onMount(async () => {
 		// console.log(chatting);
 		fetchWords();
-
 		parseSignInLink();
+
+		// Set a timeout to check if user remains null after 2 seconds
+        userCheckTimeout = window.setTimeout(() => {  // Explicitly using window.setTimeout
+            if (!user?.uid) {
+                handleUserNeverAuthenticated();
+            }
+        }, 1000); // Adjust the timeout duration as needed
 	});
 </script>
 
 <div class="wrapper">
-	<div class={`top-overlay${menuOpen ? ' menu-open' : ''}`}>
+		<div class={`top-overlay${menuOpen ? ' menu-open' : ''}`}>
 		{#if chatting && room?.open && !leavePopupVisible}
 			<div class="leave-link-container">
 				<button class="link" on:click|preventDefault={toggleLeavePopup}>End conversation</button>
@@ -367,7 +395,7 @@
 		{/if}
 	</div>
 	<div class="container">
-		{#if loaded}
+		{#if localLoaded}
 			{#if user && !user?.verified && showWarning}
 				<div class="message-box error">
 					<div class="message">
@@ -434,7 +462,7 @@
 										{user?.userName || (selectedTab == 0 && messages.length > 0 ? 'You' : 'Opening message')}
 									</div></td
 								>
-								<td width="100%" class={`${isScrolling ? 'border-top' : ''}`}>
+								<td width="100%" class={`${chatting ? 'border-top' : ''}`}>
 									<form>
 										<textarea
 											bind:value={message}
@@ -524,7 +552,7 @@
 		width: 100%;
 		tr {
 			td {
-				padding: 1.5rem 2rem 0.5rem 0;
+				padding: .5rem 1.5rem .5rem 0;
 				vertical-align: top;
 
 				&.border-top {

@@ -106,7 +106,7 @@ export function subscribeToUsers(callback: (users: User[]) => void): void {
     });
 }
 
-export async function subscribeAll(user: User | null, roomId: string, temp: boolean = false) {
+export async function subscribeAll(user: User | null, roomId: string, temp: boolean, callback: Function) {
     subscribeToRoom(roomId, async (roomData) => {
         console.log('-> Incoming [roomData]: ', roomData);
         if (roomData.userCount === 0) {
@@ -119,6 +119,7 @@ export async function subscribeAll(user: User | null, roomId: string, temp: bool
             reloadPage();
         }
         roomStore.set(roomData);
+        callback();
     });
     subscribeToMessages(roomId, async (messageData) => {
         console.log('-> Incoming [messageData]: ', messageData);
@@ -214,18 +215,20 @@ export async function updateRoom(roomId: string, payload: RoomPartial): Promise<
     }
 }
 
-export async function fetchRoom(user: User | null) {
+export async function fetchRoom(user: User | null, callback: Function) {
 
     if (user) {
         if (user.currentRoomId) {
             console.log(`Subscribing User: ${user.email} to existing Room: ${user.currentRoomId}`);
-            await subscribeAll(user, user.currentRoomId);
+            await subscribeAll(user, user.currentRoomId, false, callback);
         } else {
             const room = await fetchSingleRoom()
             if (room) {
                 await incrementExposeCount(room.id);
                 console.log(`Subscribing User: ${user.email} to new Room: ${room.id}`);
-                await subscribeAll(user, room.id, true);
+                await subscribeAll(user, room.id, true, callback);
+            } else {
+                callback();
             }
         }
     } else {
@@ -233,10 +236,11 @@ export async function fetchRoom(user: User | null) {
         if (room) {
             await incrementExposeCount(room.id);
             console.log(`Subscribing Anonymous user to new Room: ${room.id}`);
-            await subscribeAll(null, room.id, true);
+            await subscribeAll(null, room.id, true, callback);
+        } else {
+            callback();
         }
     }
-    loadedStore.set(true);
 
 }
 
