@@ -48,8 +48,7 @@
 	$: if (textareaElement) {
 		// Use a timeout to make sure it's in the DOM and available
 		setTimeout(() => {
-			if (textareaElement)
-				textareaElement.focus();
+			if (textareaElement) textareaElement.focus();
 		}, 0);
 	}
 
@@ -61,9 +60,9 @@
 		}
 	}
 
-	async function handleSendVerificationEmail(){
+	async function handleSendVerificationEmail() {
 		if (user) {
-			sendVerificationEmail(user.firebaseUser)
+			sendVerificationEmail(user.firebaseUser);
 			showResendLink = false;
 		}
 	}
@@ -101,14 +100,13 @@
 
 					trackPageClick(cleanedMessage);
 				}
-			}
+			};
 			if (user) {
 				doReplyMessage(user);
 				message = '';
 			} else {
 				openModal('LOGIN', async (newUser: User, run: boolean) => {
-					if (run)
-						doReplyMessage(newUser);
+					if (run) doReplyMessage(newUser);
 					message = '';
 				});
 			}
@@ -121,6 +119,8 @@
 	}
 
 	async function handleLeaveRoom() {
+		renderBlock = true;
+
 		if (otherUserId) {
 			const { S, R } = getMetrics(messages, user?.uid || '');
 			console.log(`S: ${S} R: ${R}`);
@@ -152,6 +152,7 @@
 
 			await updateUserRating(otherUserId, calculatedRating);
 		}
+
 		if (user && room) {
 			await updateUserRoom(user, '');
 			await updateRoom(room.id, {
@@ -161,11 +162,10 @@
 			await updateUserTimestamp(user);
 		}
 
-		reloadPage(); // commment to DEBUG ratingsMScores
+		reloadPage(); // comment to DEBUG ratingsMScores
 	}
 
 	async function handleCreateRoom() {
-		
 		const doCreateRoom = async (user: User) => {
 			const cleanedMessage = removeHtmlTags(message);
 			if (cleanedMessage.length > 0) {
@@ -180,14 +180,13 @@
 
 				reloadPage();
 			}
-		}
+		};
 		if (user) {
 			doCreateRoom(user);
 			message = '';
 		} else {
 			openModal('LOGIN', async (newUser: User, run: boolean) => {
-				if (run)
-					doCreateRoom(newUser);
+				if (run) doCreateRoom(newUser);
 				message = '';
 			});
 		}
@@ -218,47 +217,52 @@
 		showWarning = false;
 	}
 
-    let user: User | null;
-    let firstUser = true;
-    let userCheckTimeout: number | null = null;
-	
+	let user: User | null;
+	let firstUser = true;
+	let userCheckTimeout: number | null = null;
+
 	$: user = $userStore;
 
 	let localLoaded: boolean = false;
+	let renderBlock: boolean = false;
 
 	// Define an async function to handle the async call
-    async function loadRoom(user: User | null, callback: Function) {
-        try {
-            await fetchRoom(user, callback); // Call the async fetch function			
-            console.log('Room fetched for user:', user?.uid);
-        } catch (error) {
-            console.error('Error fetching room:', error);
-        }
-    }
-
-	$: {
-		console.log("user", user)
+	async function loadRoom(user: User | null, callback: Function) {
+		try {
+			await fetchRoom(user, callback); // Call the async fetch function
+			console.log('Room fetched for user:', user?.uid);
+		} catch (error) {
+			console.error('Error fetching room:', error);
+		}
 	}
 
-	 // Reactive statement to handle logged-in users
-	 $: if (user?.uid) {
-        console.log('Loaded user', user);
-        if (firstUser) {
-            firstUser = false;
-            loadRoom(user, () => { localLoaded = true });
-        }
+	$: {
+		console.log('user', user);
+	}
 
-        // Clear the timeout if the user is authenticated
-        if (userCheckTimeout !== null) {
-            clearTimeout(userCheckTimeout);
-        }
-    }
+	// Reactive statement to handle logged-in users
+	$: if (user?.uid) {
+		console.log('Loaded user', user);
+		if (firstUser) {
+			firstUser = false;
+			loadRoom(user, () => {
+				localLoaded = true;
+			});
+		}
+
+		// Clear the timeout if the user is authenticated
+		if (userCheckTimeout !== null) {
+			clearTimeout(userCheckTimeout);
+		}
+	}
 	// Function to handle when user remains null
-    function handleUserNeverAuthenticated() {
+	function handleUserNeverAuthenticated() {
 		console.log('No user');
-		loadRoom(null, () => { localLoaded = true });
-        // Add any additional logic you want here
-    }
+		loadRoom(null, () => {
+			localLoaded = true;
+		});
+		// Add any additional logic you want here
+	}
 
 	$: users = $usersStore;
 	$: room = $roomStore;
@@ -319,198 +323,223 @@
 		parseSignInLink();
 
 		// Set a timeout to check if user remains null after 2 seconds
-        userCheckTimeout = window.setTimeout(() => {  // Explicitly using window.setTimeout
-            if (!user?.uid) {
-                handleUserNeverAuthenticated();
-            }
-        }, 1000); // Adjust the timeout duration as needed
+		userCheckTimeout = window.setTimeout(() => {
+			// Explicitly using window.setTimeout
+			if (!user?.uid) {
+				handleUserNeverAuthenticated();
+			}
+		}, 1000); // Adjust the timeout duration as needed
 	});
 </script>
 
 <div class="wrapper">
+	{#if !renderBlock}
 		<div class={`top-overlay${menuOpen ? ' menu-open' : ''}`}>
-		{#if chatting && room?.open && !leavePopupVisible}
-			<div class="leave-link-container">
-				<button class="link" on:click|preventDefault={toggleLeavePopup}>End conversation</button>
-			</div>
-		{/if}
-		{#if leavePopupVisible}
-			<div
-				class="leave-form-container"
-				on:wheel|preventDefault={() => {}}
-				on:touchmove|preventDefault={() => {}}
-			>
-				<div class="backdrop" on:click={toggleLeavePopup}></div>
-				<div class="menu-container">
-					<div class="menu-content">
-						<button class="modal-close" on:click={toggleLeavePopup}>&times;</button>
-						<div class="menu-body">
-							{#if otherUserName == undefined}
+			{#if chatting && room?.open && !leavePopupVisible}
+				<div class="leave-link-container">
+					<button
+						class="link"
+						on:click|preventDefault={otherUserName == undefined
+							? handleLeaveRoom
+							: toggleLeavePopup}
+					>
+						End conversation
+					</button>
+				</div>
+			{/if}
+			{#if leavePopupVisible}
+				<div
+					class="leave-form-container"
+					on:wheel|preventDefault={() => {}}
+					on:touchmove|preventDefault={() => {}}
+				>
+					<div class="backdrop" on:click={toggleLeavePopup}></div>
+					<div class="menu-container">
+						<div class="menu-content">
+							<button class="modal-close" on:click={toggleLeavePopup}>&times;</button>
+							<div class="menu-body">
+								{#if otherUserName == undefined}
+									<p>
+										{`Are you sure you want to close this conversation?`}
+									</p>
+								{:else}
+									<p>
+										{`Would you ever want to speak with ${otherUserName} again in life?`}
+									</p>
+									<RadioPicker options={optionsList} bind:selectedIndex={optionSelected} />
+									<p>
+										{`You cannot reconnect with ${otherUserName} on this site after ending the conversation.`}
+									</p>
+								{/if}
+							</div>
+							<div class="button-group">
+								<button class="secondary-dark" on:click={toggleLeavePopup}>Stay for Now</button>
+								<button
+									class="primary-dark"
+									disabled={optionSelected < 0 && otherUserName != undefined ? true : undefined}
+									on:click={handleLeaveRoom}>End conversation</button
+								>
+							</div>
+						</div>
+					</div>
+				</div>
+			{:else if chatting && !room?.open}
+				<div class="leave-form-container">
+					<div class="backdrop" on:click={() => {}}></div>
+					<div class="menu-container">
+						<div class="menu-content">
+							<!-- <button class="modal-close" on:click={toggleLeavePopup}>&times;</button> -->
+							<div class="menu-body">
 								<p>
-									{`Are you sure you want to close this conversation?`}
-								</p>
-							{:else}
-								<p>
-									{`Would you ever want to speak with ${otherUserName} again in life?`}
+									{`${otherUserName} is leaving the conversation. Would you ever want to speak with them again in life?`}
 								</p>
 								<RadioPicker options={optionsList} bind:selectedIndex={optionSelected} />
-								<p>
-									{`You cannot reconnect with ${otherUserName} on this site after ending the conversation.`}
-								</p>
+							</div>
+							<div class="button-group">
+								<button
+									class="secondary-dark"
+									disabled={optionSelected < 0 && otherUserName != undefined ? true : undefined}
+									on:click={handleLeaveRoom}>Leave conversation</button
+								>
+							</div>
+						</div>
+					</div>
+				</div>
+			{/if}
+		</div>
+		<div class="container">
+			{#if localLoaded}
+				{#if user && !user?.verified && showWarning}
+					<div class="message-box error">
+						<div class="message">
+							<div>
+								Please check your email for a verification link and click the link to verify your
+								account.
+							</div>
+							{#if showResendLink}
+								<button class="link" on:click={handleSendVerificationEmail}>Resend email</button>
+							{:else}
+								<button class="link" disabled>Email sent</button>
 							{/if}
 						</div>
-						<div class="button-group">
-							<button class="secondary-dark" on:click={toggleLeavePopup}>Stay for Now</button>
-							<button
-								class="primary-dark"
-								disabled={optionSelected < 0 && otherUserName != undefined ? true : undefined}
-								on:click={handleLeaveRoom}>End conversation</button
-							>
-						</div>
-					</div>
-				</div>
-			</div>
-		{:else if chatting && !room?.open}
-			<div class="leave-form-container">
-				<div class="backdrop" on:click={() => {}}></div>
-				<div class="menu-container">
-					<div class="menu-content">
-						<!-- <button class="modal-close" on:click={toggleLeavePopup}>&times;</button> -->
-						<div class="menu-body">
-							<p>
-								{`${otherUserName} has ended the conversation. Would you ever want to speak with them again in life?`}
-							</p>
-							<RadioPicker options={optionsList} bind:selectedIndex={optionSelected} />
-						</div>
-						<div class="button-group">
-							<button
-								class="secondary-dark"
-								disabled={optionSelected < 0 && otherUserName != undefined ? true : undefined}
-								on:click={handleLeaveRoom}>Leave conversation</button
-							>
-						</div>
-					</div>
-				</div>
-			</div>
-		{/if}
-	</div>
-	<div class="container">
-		{#if localLoaded}
-			{#if user && !user?.verified && showWarning}
-				<div class="message-box error">
-					<div class="message">
-						<div>Please check your email for a verification link and click the link to verify your account.</div>
-						{#if showResendLink}
-							<button class="link" on:click={handleSendVerificationEmail}>Resend email</button>
-						{:else}
-							<button class="link" disabled>Email sent</button>
-						{/if}
-					</div>
-					<button class="no-border-clear" on:click={clearWarning}>&times;</button>
-				</div>
-			{/if}
-			{#if !user}
-				<p>
-					Share anything you want in an anonymous 1-on-1 conversation, from how your day went to
-					your deepest thoughts and secrets.
-				</p>
-			{/if}
-			<div class={`messages-wrapper${chatting ? '' : ' border'}`}>
-				{#if !chatting}
-					<div class="tabs">
-						{#if messages.length > 0}
-							<div
-								class={`tab${selectedTab == 0 ? '' : ' hidden'}`}
-								on:click={() => {
-									selectedTab = 0;
-								}}
-							>
-								<div class="label">{labelReply}</div>
-							</div>
-						{/if}
-						<div
-							class={`tab${selectedTab == (messages.length > 0 ? 1 : 0) ? '' : ' hidden'}`}
-							on:click={() => {
-								selectedTab = messages.length > 0 ? 1 : 0;
-							}}
-						>
-							<div class="label">{labelNew}</div>
-						</div>
+						<!-- <button class="no-border-clear" on:click={clearWarning}>&times;</button> -->
 					</div>
 				{/if}
-				<div class={`messages${chatting ? '' : ' border'}`}>
-					<table>
-						{#if selectedTab == 0}
-							{#each chatting ? messages : lastMessages as message (message.timestamp)}
-								<tr class={user && message.uid === user.uid ? 'grey' : ''}>
-									<td>
-										<div class="user-name">
-											{users[message.uid]?.userName ? users[message.uid].userName : 'Anonymous'}
-										</div>
-									</td>
-									<td width="99%">
-										{@html parseMessage(message.content, words)}
-									</td>
-									<!-- <td><em>({formatTimestamp(message.timestamp)})</em></td> -->
-								</tr>
-							{/each}
-						{/if}
-						{#if !leavePopupVisible && !(chatting && !room?.open)}
-							<tr><td class={`${chatting ? 'bottom-spacer' : ''}`}></td></tr>
-							<tr class={`${chatting ? 'sticky border-top' : ''}`}>
-								<td class={`${chatting ? 'grey border-top' : ''}`}>
-									<div class="user-name">
-										{user?.userName || (selectedTab == 0 && messages.length > 0 ? 'You' : 'Opening message')}
-									</div></td
+				{#if !user}
+					<p>
+						Share anything you want in an anonymous 1-on-1 conversation, from how your day went to
+						your deepest thoughts and secrets.
+					</p>
+				{/if}
+				<div class={`messages-wrapper${chatting ? '' : ' border'}`}>
+					{#if !chatting}
+						<div class="tabs">
+							{#if messages.length > 0}
+								<div
+									class={`tab${selectedTab == 0 ? '' : ' hidden'}`}
+									on:click={() => {
+										if (selectedTab === 0) handleUserNeverAuthenticated();
+										else selectedTab = 0;
+									}}
 								>
-								<td width="100%" class={`${chatting ? 'message-top' : ''}`}>
-									<form>
-										<textarea
-											bind:value={message}
-											bind:this={textareaElement}
-											placeholder=""
-											required
-											on:keydown={handleKeydown}
-										/>
-										<div class="buttonGroup">
-											{#if chatting}
-												<button 
-													class="primary" 
-													disabled={user && !user.verified}
-													on:click|preventDefault={handleSendMessage}
-												>
-													Send
-												</button>
-											{:else}
-												<!-- {#if messages.length > 0}
-														<button on:click|preventDefault={handleReplyMessage}>Join</button>
-													{/if} -->
-												<button
-													class="primary"
-													disabled={user && !user.verified}
-													on:click|preventDefault={selectedTab == 0 && messages.length > 0
-														? handleReplyMessage
-														: handleCreateRoom}>Send</button
-												>
-											{/if}
-										</div>
-									</form>
-								</td>
-							</tr>
-						{/if}
-					</table>
+									<div class="label">{labelReply}</div>
+								</div>
+							{/if}
+							<div
+								class={`tab${selectedTab == (messages.length > 0 ? 1 : 0) ? '' : ' hidden'}`}
+								on:click={() => {
+									selectedTab = messages.length > 0 ? 1 : 0;
+								}}
+							>
+								<div class="label">{labelNew}</div>
+							</div>
+						</div>
+					{/if}
+					<div class={`messages${chatting ? '' : ' border'}`}>
+						<table>
+							{#if selectedTab == 0}
+								{#each chatting ? messages : lastMessages as message, messageIndex (message.timestamp)}
+									<tr class={user && message.uid === user.uid ? 'grey' : ''}>
+										{#if screenWidth > 600 || !(messageIndex > 0 && message.uid === (chatting ? messages : lastMessages)[messageIndex - 1].uid)}
+											<td style="margin-top: {screenWidth > 600 ? '0' : '1rem'}">
+												{#if !(messageIndex > 0 && message.uid === (chatting ? messages : lastMessages)[messageIndex - 1].uid)}
+													<div class="user-name">
+														{users[message.uid]?.userName
+															? users[message.uid].userName
+															: 'Anonymous'}
+													</div>
+												{/if}
+											</td>
+										{/if}
+										<td width="99%">
+											{@html parseMessage(message.content, words)}
+										</td>
+										<!-- <td><em>({formatTimestamp(message.timestamp)})</em></td> -->
+									</tr>
+								{/each}
+							{/if}
+							{#if !leavePopupVisible && !(chatting && !room?.open)}
+								<tr>
+									<td class={`${chatting ? 'bottom-spacer' : ''}`}></td>
+								</tr>
+								<tr class={`${chatting ? 'sticky border-top' : ''}`}>
+									{#if screenWidth > 600}
+										<td class={`border-top${chatting ? ' grey' : ''}`}>
+											<div class="user-name">
+												{user?.userName ||
+													(selectedTab == 0 && messages.length > 0 ? 'You' : 'Opening message')}
+											</div>
+										</td>
+									{/if}
+									<td width="100%" class={`message${chatting ? ' chatting' : ''}`}>
+										<form>
+											<textarea
+												bind:value={message}
+												bind:this={textareaElement}
+												placeholder=""
+												required
+												on:keydown={handleKeydown}
+											/>
+											<div class="buttonGroup">
+												{#if chatting}
+													<button
+														class="primary"
+														disabled={user && !user.verified}
+														on:click|preventDefault={handleSendMessage}
+													>
+														Send
+													</button>
+												{:else}
+													<!-- {#if messages.length > 0}
+															<button on:click|preventDefault={handleReplyMessage}>Join</button>
+														{/if} -->
+													<button
+														class="primary"
+														disabled={user && !user.verified}
+														on:click|preventDefault={selectedTab == 0 && messages.length > 0
+															? handleReplyMessage
+															: handleCreateRoom}>Send</button
+													>
+												{/if}
+											</div>
+										</form>
+									</td>
+								</tr>
+							{/if}
+						</table>
+					</div>
 				</div>
-			</div>
-		{:else}
-			<p>Loading...</p>
-		{/if}
-	</div>
+			{:else}
+				<p>Loading...</p>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <style lang="scss">
 	$top-bar-height: 4rem;
 	$top-bar: $top-bar-height - 2rem;
-	$divider-height: 0.25rem;
+	$divider-height: 0.125rem;
 	$menu-content-gap: 0.5rem;
 
 	$top-menu-height-lg: 15rem;
@@ -525,12 +554,12 @@
 
 	.message-box {
 		margin: 1rem 0;
-		padding: 0.25rem;
+		padding: 0 1rem;
 		display: flex;
 		align-items: flex-start;
 		.message {
 			flex-grow: 1;
-			padding: 0.75rem;
+			padding: 0.5rem;
 			display: flex;
 			flex-wrap: wrap;
 			align-items: center;
@@ -541,8 +570,9 @@
 		background-color: rgba(255, 234, 0, 0.25);
 	}
 	.error {
-		// background-color: rgba(255, 0, 0, 0.25);
-		background-color: #00FFDD40;
+		// background-color: #ff440010;
+		// background-color: #00ffdd40;
+		color: #ff4400;
 	}
 
 	em {
@@ -551,18 +581,24 @@
 	}
 	table {
 		width: 100%;
+		border-collapse: collapse;
 		tr {
 			td {
-				padding: .5rem 1.5rem .5rem 0;
+				padding: 0.5rem 2rem 0.5rem 0;
 				vertical-align: top;
 
 				&.border-top {
-					padding-top: 1.5rem;
+					padding-top: 1rem;
 				}
 
-				&.message-top {
-					padding-top: 1.5rem;
+				&.message {
+					padding-top: 0;
+					padding-bottom: 0;
 				}
+
+				// &.chatting {
+				// 	padding-top: 1.5rem;
+				// }
 
 				&.bottom-spacer {
 					height: 120px;
@@ -574,7 +610,7 @@
 
 			&.border-top {
 				box-shadow:
-					inset 0 4px 0 #000000,
+					inset 0 2px 0 #000000,
 					inset 0 0px 0 #000000;
 			}
 		}
@@ -654,6 +690,7 @@
 					textarea {
 						background-color: white;
 						height: 48px; // match button
+						overflow-y: hidden;
 					}
 
 					button {
@@ -676,7 +713,7 @@
 		.leave-link-container {
 			max-width: 800px;
 			margin: 0 auto;
-			padding: 0.5rem 2rem;
+			padding: 1.5rem 2rem;
 			display: flex;
 			justify-content: flex-end;
 		}
@@ -751,22 +788,22 @@
 	}
 	form {
 		// padding-top: 2rem;
-		width: calc(100% + 0.5rem);
+		width: calc(100% + 1rem);
 		display: flex;
 		justify-content: flex-end;
-		// gap: 1rem;
+		gap: 1rem;
 
 		position: relative;
-		left: -0.5rem;
-		top: -0.5rem;
+		left: -1rem;
+		top: 0.125rem;
 
 		textarea {
 			// height: 46px; // match button
-			background-color: rgba(255,255,255,0);
-			height: 80px; // match button
+			background-color: rgba(255, 255, 255, 0);
+			height: 120px; // match button
 			box-sizing: border-box;
 			flex-grow: 1;
-			padding: 0.5rem;
+			padding: 1rem;
 			border-radius: 0;
 			border: 0;
 			font-size: 1em;
@@ -776,11 +813,12 @@
 		}
 
 		.buttonGroup {
-			height: 100%;
+			// height: 100%;
 			display: flex;
 			flex-direction: column;
 			justify-content: flex-end;
 			gap: 0.5rem;
+			padding-bottom: 1rem;
 		}
 	}
 	.grey {
@@ -790,6 +828,7 @@
 	tr.sticky {
 		background-color: var(--color-bg-0);
 		// background-color: white;
+		padding-top: 0.5rem;
 
 		position: fixed;
 		left: 0;
@@ -799,19 +838,20 @@
 		max-width: 800px;
 		margin: 0 auto;
 
-		td {
-			padding-bottom: 2rem;
-		}
+		// td {
+		// 	padding-bottom: 2rem;
+		// }
 	}
 
 	@media (max-width: 864px) {
 		form {
-			.buttonGroup {
-				flex-direction: row;
-			}
+			// .buttonGroup {
+			// 	flex-direction: row;
+			// }
 		}
 		tr.sticky {
-			padding: 0 2rem;
+			padding-left: 2rem;
+			padding-right: 2rem;
 		}
 	}
 
@@ -822,25 +862,30 @@
 				flex-direction: column;
 
 				td:first-child {
-					padding-bottom: 0.5rem;
+					// padding-bottom: 0.5rem;
 				}
 
 				td {
+					padding-top: 0.25rem;
+					padding-bottom: 0.25rem;
+
 					&.bottom-spacer {
 						height: 200px;
 					}
 				}
 
-				// &.sticky {
-				// 	td:last-child {
-				// 		padding-top: 0.5rem;
-				// 		padding-bottom: 8rem;
-				// 	}
-				// }
+				&.sticky {
+					padding-top: 1rem;
+					// td:last-child {
+					// 	padding-top: 0.5rem;
+					// 	padding-bottom: 8rem;
+					// }
+				}
 			}
 		}
 		form {
 			flex-direction: column;
+			gap: 0;
 			.buttonGroup {
 				flex-direction: row;
 			}
@@ -855,11 +900,12 @@
 			padding: 0 1rem;
 		}
 		tr.sticky {
-			padding: 0 1rem;
+			padding-left: 1rem;
+			padding-right: 1rem;
 		}
 		.top-overlay {
 			.leave-link-container {
-				padding: 0.5rem 1rem;
+				padding: 1.5rem 1rem;
 			}
 			.leave-form-container {
 				.menu-container {
@@ -877,14 +923,14 @@
 				top: $header-height-sm;
 			}
 		}
-		table {
-			tr {
-				td {
-					&.message-top {
-						padding-top: 0.5rem;
-					}
-				}
-			}
-		}
+		// table {
+		// 	tr {
+		// 		td {
+		// 			&.message-top {
+		// 				padding-top: 0.5rem;
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 </style>

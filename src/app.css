@@ -1,13 +1,13 @@
 :root {
 	--font-body: 'Inter', sans-serif;
 	--font-mono: monospace;
-	--color-bg-0: #EEEEEE; /* rgb(202, 216, 228); */
+	--color-bg-0: #eeeeee; /* rgb(202, 216, 228); */
 	--color-bg-1: hsl(209, 36%, 86%);
 	--color-bg-2: hsl(224, 44%, 95%);
-	--color-bg-0-dark: #1E1E1E /* hsl(224, 44%, 5%) */;
+	--color-bg-0-dark: #1e1e1e /* hsl(224, 44%, 5%) */;
 	--color-theme-1: #ff3e00;
 	--color-theme-2: #4075a6;
-	--color-text: #1E1E1E /*rgba(0, 0, 0, 0.9)*/;
+	--color-text: #1e1e1e /*rgba(0, 0, 0, 0.9)*/;
 	--column-width: 42rem;
 	--column-margin-top: 4rem;
 	font-family: var(--font-body);
@@ -19,6 +19,7 @@ body {
 	margin: 0;
 	overflow-x: hidden;
 	font-size: 12pt;
+	line-height: 18pt;
 }
 
 h1,
@@ -119,7 +120,7 @@ button.primary {
 }
 
 button.secondary {
-	background-color: #BBBBBB;
+	background-color: #bbbbbb;
 	border: 1px solid var(--color-text);
 }
 
@@ -168,6 +169,8 @@ button.secondary-dark {
 
 button.link {
 	background-color: rgba(0, 0, 0, 0);
+	padding-top: 0;
+	padding-bottom: 0;
 	border: none;
 	min-width: 0;
 	/* font-weight: 700; */

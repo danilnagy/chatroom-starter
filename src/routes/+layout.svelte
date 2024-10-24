@@ -1,7 +1,18 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { browser } from '$app/environment'; // Import the browser environment flag
-	import { logIn, logOut, signUp, resetPassword, sendSignInLink, reAuth, deleteUserAccount, updateUserRoom, updateUserTimestamp, updateUserUserName } from '../lib/auth';
+	import {
+		logIn,
+		logOut,
+		signUp,
+		resetPassword,
+		sendSignInLink,
+		reAuth,
+		deleteUserAccount,
+		updateUserRoom,
+		updateUserTimestamp,
+		updateUserUserName
+	} from '../lib/auth';
 	import { updateRoom } from '../lib/massaging';
 	import userStore, { type User } from '../store/userStore';
 	import roomStore from '../store/roomStore';
@@ -21,13 +32,22 @@
 	let password: string = '';
 
 	let hideSendLoginLink: boolean = true;
-	let resetPasswordSent: boolean = false;
+	let contextMessage: string = '';
 
 	function clearWarning() {
 		warning = '';
 	}
 	function clearError() {
 		error = '';
+	}
+
+	function closeAndResetModal() {
+		userName = '';
+		email = '';
+		password = '';
+		clearError();
+		clearWarning();
+		closeModal();
 	}
 
 	function handleToggleState() {
@@ -44,18 +64,17 @@
 		try {
 			// Check if userName is empty
 			if (!userName) {
-				throw new Error('Username is required');
+				throw new Error('Please enter a username.');
 			}
 			await signUp(userName, email, password);
-			userName = '';
-			email = '';
-			password = '';
-			error = '';
-			closeModal();
+			closeAndResetModal();
 		} catch (e) {
 			if (e instanceof Error) {
 				const errorKey = getFirebaseErrorKey(e.message);
-				error = (errorKey && firebaseErrorMessages[errorKey] ? firebaseErrorMessages[errorKey] : 'Sign Up Failed: ' + e.message);
+				error =
+					errorKey && firebaseErrorMessages[errorKey]
+						? firebaseErrorMessages[errorKey]
+						: 'Sign Up Failed: ' + e.message;
 			} else {
 				error = 'Sign Up Failed: An unknown error occurred';
 			}
@@ -65,16 +84,15 @@
 	async function handleLogIn() {
 		try {
 			await logIn(email, password);
-			userName = '';
-			email = '';
-			password = '';
-			error = '';
-			closeModal();
+			closeAndResetModal();
 		} catch (e) {
 			if (e instanceof Error) {
 				const errorKey = getFirebaseErrorKey(e.message);
-								error = (errorKey && firebaseErrorMessages[errorKey] ? firebaseErrorMessages[errorKey] : 'Log In Failed: ' + e.message);
-				hideSendLoginLink = ["auth/invalid-email"].includes(errorKey || "");
+				error =
+					errorKey && firebaseErrorMessages[errorKey]
+						? firebaseErrorMessages[errorKey]
+						: 'Log In Failed: ' + e.message;
+				hideSendLoginLink = ['auth/invalid-email'].includes(errorKey || '');
 			} else {
 				error = 'Log In Failed: An unknown error occurred';
 			}
@@ -82,19 +100,19 @@
 	}
 
 	async function handleResetPassword() {
-		if (user?.email){
+		if (user?.email) {
 			try {
 				await resetPassword(user.email);
-				error = '';
-				warning = `Reset password link was sent to [${user.email}]`;
+				contextMessage = 'Link sent';
+				// warning = `Reset password link was sent to ${user.email}`;
 			} catch (e) {
 				if (e instanceof Error) {
-					error = 'Reset password failed: ' + e.message;
+					console.warn('Error resetting password: ' + e.message);
+					contextMessage = 'Error: ' + e.message;
 				} else {
-					error = 'Reset password failed: An unknown error occurred';
+					contextMessage = 'Error resetting password';
 				}
 			}
-			resetPasswordSent = true;
 		}
 	}
 
@@ -107,7 +125,7 @@
 		try {
 			await sendSignInLink(email);
 			error = '';
-			warning = `Sign in link was sent to [${email}]`;
+			warning = `Sign in link was sent to ${email}`;
 		} catch (e) {
 			if (e instanceof Error) {
 				error = 'Send link failed: ' + e.message;
@@ -124,19 +142,30 @@
 	}
 
 	async function handleUpdateUserName() {
-		if (user) {
-			await updateUserUserName(user, userName);
-			reloadPage();
+		try {
+			// Check if userName is empty
+			if (!userName) {
+				throw new Error('Please enter a username.');
+			}
+			if (user) {
+				await updateUserUserName(user, userName);
+				reloadPage();
+			}
+		} catch (e) {
+			if (e instanceof Error) {
+				error = 'Change Username failed: ' + e.message;
+			} else {
+				error = 'Change Username failed: An unknown error occurred';
+			}
 		}
 	}
-
 
 	async function handleLeaveRoom() {
 		if (user) {
 			await updateUserRoom(user, '');
 			await updateUserTimestamp(user);
 		}
-		if (room){
+		if (room) {
 			await updateRoom(room.id, {
 				// userCount: 0,
 				open: false
@@ -149,7 +178,7 @@
 	}
 
 	async function handleDeleteAccount() {
-		if (user?.firebaseUser){
+		if (user?.firebaseUser) {
 			try {
 				await reAuth(user?.firebaseUser, email, password);
 				await handleLeaveRoom();
@@ -158,8 +187,11 @@
 			} catch (e) {
 				if (e instanceof Error) {
 					const errorKey = getFirebaseErrorKey(e.message);
-									error = (errorKey && firebaseErrorMessages[errorKey] ? firebaseErrorMessages[errorKey] : 'Delete Account Failed: ' + e.message);
-					hideSendLoginLink = ["auth/invalid-email"].includes(errorKey || "");
+					error =
+						errorKey && firebaseErrorMessages[errorKey]
+							? firebaseErrorMessages[errorKey]
+							: 'Delete Account Failed: ' + e.message;
+					hideSendLoginLink = ['auth/invalid-email'].includes(errorKey || '');
 				} else {
 					error = 'Delete Account Failed: An unknown error occurred';
 				}
@@ -287,13 +319,15 @@
 					>
 				</p>
 				<p>
-					Your Conversing Score reflects the quality and length of your conversations.  Only you can see it, but your conversation partners will typically have a similar score to yours.  In other words, the better you are to your fellow human, the better they will be to you.
+					Your Conversing Score reflects the quality and length of your conversations. Only you can
+					see it, but your conversation partners will typically have a similar score to yours. In
+					other words, the better you are to your fellow human, the better they will be to you.
 				</p>
 			</div>
 			<div class="menu-content">
 				<button class="link dark" on:click={handleChangeInfo}>Change Username</button>
-				{#if resetPasswordSent}
-					<button class="link dark" disabled>Link sent</button>
+				{#if contextMessage}
+					<button class="link dark" disabled>{contextMessage}</button>
 				{:else}
 					<button class="link dark" on:click={handleResetPassword}>Reset Password</button>
 				{/if}
@@ -311,13 +345,13 @@
 		</div>
 	</div>
 
-	<Modal showHeader={true} isOpen={state.isOpen} on:close={closeModal}>
+	<Modal showHeader={true} isOpen={state.isOpen} on:close={closeAndResetModal}>
 		{#if warning}
 			<div class="message-box warning">
 				<div class="message">{warning}</div>
-				<div class="close-container">
+				<!-- <div class="close-container">
 					<button class="no-border-dark" on:click={clearWarning}>&times;</button>
-				</div>
+				</div> -->
 			</div>
 		{/if}
 		{#if error}
@@ -328,9 +362,9 @@
 						<button class="link dark" on:click={handleSendSignInLink}>Send login link</button>
 					{/if}
 				</div>
-				<div class="close-container">
+				<!-- <div class="close-container">
 					<button class="no-border-dark" on:click={clearError}>&times;</button>
-				</div>
+				</div> -->
 			</div>
 		{/if}
 		{#if state.state === 'SIGNUP'}
@@ -338,18 +372,21 @@
 				<div class="col">
 					<p>Please choose an anonymous username.</p>
 					<p>We request an email address only to help prevent bots and other abuses of the site.</p>
-					<p>Your email is encrypted such that all we see are the random username and password combinations created here.</p>
+					<p>
+						Your email is encrypted such that all we see are the random username and password
+						combinations created here.
+					</p>
 				</div>
 				<div class="col min">
 					<div class="login-form">
 						<div class="form-section">
-							<div class="label">User name</div>
+							<div class="label">Username</div>
 							<input
 								class="dark"
 								type="text"
 								bind:value={userName}
 								placeholder=""
-    							maxlength="10"
+								maxlength="11"
 								on:keyup={(event) => {
 									if (event.key === 'Enter') handleSignUp();
 								}}
@@ -471,7 +508,9 @@
 						<div class="form-section">
 							<div class="label"></div>
 							<div class="button-group">
-								<button class="link dark" on:click={closeModal}><strong>Cancel</strong></button>
+								<button class="link dark" on:click={closeAndResetModal}
+									><strong>Cancel</strong></button
+								>
 								<button class="primary-dark" on:click={handleDeleteAccount}>Confirm</button>
 							</div>
 						</div>
@@ -484,21 +523,24 @@
 				<div class="col min">
 					<div class="login-form">
 						<div class="form-section">
-							<div class="label">User name</div>
+							<div class="label">Username</div>
 							<input
 								class="dark"
 								type="text"
 								bind:value={userName}
 								placeholder=""
+								maxlength="11"
 								on:keyup={(event) => {
-									if (event.key === 'Enter') handleSignUp();
+									if (event.key === 'Enter') handleUpdateUserName();
 								}}
 							/>
 						</div>
 						<div class="form-section">
 							<div class="label"></div>
 							<div class="button-group">
-								<button class="link dark" on:click={closeModal}><strong>Cancel</strong></button>
+								<button class="link dark" on:click={closeAndResetModal}
+									><strong>Cancel</strong></button
+								>
 								<button class="primary-dark" on:click={handleUpdateUserName}>Confirm</button>
 							</div>
 						</div>
@@ -512,7 +554,7 @@
 <style lang="scss">
 	$top-bar-height: 4rem;
 	$top-bar: $top-bar-height - 2rem;
-	$divider-height: 0.25rem;
+	$divider-height: 0.125rem;
 	$menu-content-gap: 0.5rem;
 
 	$top-menu-height-lg: 15rem;
@@ -533,10 +575,10 @@
 		// flex-wrap: wrap;
 		align-items: stretch;
 		// justify-content: space-between;
-		min-height: 75px;
+		// min-height: 75px;
 		.message {
 			flex-grow: 1;
-			padding: 0.75rem;
+			// padding: 0.75rem 0;
 			display: flex;
 			flex-wrap: wrap;
 			align-items: center;
@@ -547,11 +589,13 @@
 		}
 	}
 	.warning {
-		background-color: rgba(255, 234, 0, 0.25);
+		// background-color: rgba(255, 234, 0, 0.25);
+		color: #bbbbbb;
 	}
 	.error {
-		// background-color: rgba(255, 0, 0, 0.25);
-		background-color: #00FFDD40;
+		// background-color: #ff440010;
+		// background-color: #00ffdd40;
+		color: #ff4400;
 	}
 	.two-col {
 		display: flex;
@@ -609,7 +653,7 @@
 		display: flex;
 		flex-direction: row;
 		justify-content: space-between;
-		
+
 		background-color: var(--color-bg-0-dark);
 		color: #fff;
 
@@ -630,6 +674,10 @@
 
 			p {
 				margin: 0.5rem 0;
+			}
+
+			button {
+				padding-top: 1rem;
 			}
 		}
 
@@ -697,7 +745,7 @@
 		.content-container {
 			display: flex;
 			transition: margin-top 0.1s;
-			margin-top: 4px; /* Adjust this value to match the height of the menu */
+			margin-top: 2px; /* Adjust this value to match the height of the menu */
 			position: relative;
 			.content {
 				flex-grow: 1;
