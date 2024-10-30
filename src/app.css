@@ -1,13 +1,18 @@
 :root {
 	--font-body: 'Inter', sans-serif;
 	--font-mono: monospace;
-	--color-bg-0: #eeeeee; /* rgb(202, 216, 228); */
+	--color-bg-0: #E9E9E9;
+	/* rgb(202, 216, 228); */
 	--color-bg-1: hsl(209, 36%, 86%);
 	--color-bg-2: hsl(224, 44%, 95%);
-	--color-bg-0-dark: #1e1e1e /* hsl(224, 44%, 5%) */;
+	--color-bg-0-dark: #1e1e1e
+		/* hsl(224, 44%, 5%) */
+	;
 	--color-theme-1: #ff3e00;
 	--color-theme-2: #4075a6;
-	--color-text: #1e1e1e /*rgba(0, 0, 0, 0.9)*/;
+	--color-text: #1e1e1e
+		/*rgba(0, 0, 0, 0.9)*/
+	;
 	--column-width: 42rem;
 	--column-margin-top: 4rem;
 	font-family: var(--font-body);
@@ -74,7 +79,7 @@ button {
 }
 
 button {
-	position: relative; /* Ensure the button is a positioned element */
+	position: relative;
 	cursor: pointer;
 	/* min-width: 100px; */
 	max-width: max-content;
@@ -98,10 +103,10 @@ button::before {
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background-color: rgba(0, 0, 0, 0.05); /* Overlay color */
+	background-color: rgba(0, 0, 0, 0.05);
 	opacity: 0;
 	transition: opacity 0.3s ease;
-	pointer-events: none; /* Ensures the overlay doesn't block the button interactions */
+	pointer-events: none;
 }
 
 button:hover::before {
@@ -129,6 +134,10 @@ button.no-border {
 	min-width: 0;
 }
 
+button.no-border::before {
+	opacity: 0;
+}
+
 button.no-border-dark {
 	background-color: rgba(0, 0, 0, 0);
 	border: none;
@@ -137,6 +146,7 @@ button.no-border-dark {
 	font-size: 1.5rem;
 	line-height: 1rem;
 }
+
 button.no-border-clear {
 	background-color: rgba(0, 0, 0, 0);
 	border: none;
@@ -181,6 +191,10 @@ button.link {
 	&.dark {
 		color: white;
 	}
+}
+
+button.link::before {
+	opacity: 0;
 }
 
 button:focus:not(:focus-visible) {

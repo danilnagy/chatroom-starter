@@ -54,7 +54,7 @@ async function fetchUserNames(userIds: string[]): Promise<void> {
 	});
 }
 
-function getUniqueUIDs(messages: { uid: string; [key: string]: any }[]): string[] {
+function getUniqueUIDs(messages: { uid: string;[key: string]: any }[]): string[] {
 	const uidSet = new Set<string>();
 
 	messages.forEach((message) => {
@@ -226,9 +226,9 @@ export async function updateRoom(roomId: string, payload: RoomPartial): Promise<
 		await updateDoc(roomRef, {
 			...payload
 		});
-		console.log(`Set userCount for room ${roomId}`);
+		console.log(`Update room ${roomId}`);
 	} catch (error) {
-		console.error(`Failed to set userCount for room ${roomId}:`, error);
+		console.error(`Failed to update room ${roomId}:`, error);
 	}
 }
 

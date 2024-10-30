@@ -44,11 +44,46 @@
 	let showResendLink: boolean = true;
 	let textareaElement: HTMLTextAreaElement | null = null; // Initialize as null
 
+	const maxLines = 6;
+	let initialized = false;
+
+	function resetTextArea() {
+		if (textareaElement) {
+			const maxHeight = `${maxLines * 20 + 32}px`;
+			textareaElement.style.height = screenWidth > 600 ? maxHeight : 'auto';
+			textareaElement.style.maxHeight = maxHeight; // Maximum height: 4 lines
+		}
+	}
+
 	// Reactive statement to focus the textarea right after it's created
 	$: if (textareaElement) {
 		// Use a timeout to make sure it's in the DOM and available
 		setTimeout(() => {
-			if (textareaElement) textareaElement.focus();
+			if (textareaElement && !initialized) {
+				console.warn('textareaElement - 1');
+				initialized = true;
+
+				resetTextArea();
+
+				// Adjust the height as the user types
+				textareaElement.addEventListener('input', () => {
+					if (textareaElement) {
+						console.warn('textareaElement - 2');
+						const numLines = (textareaElement.scrollHeight - 32) / 20;
+
+						if (numLines <= maxLines) {
+							const newHeight = Math.max(numLines, 2) * 20 + 32;
+							textareaElement.style.height = `${newHeight}px`; // Grow up to 4 lines
+							textareaElement.style.overflowY = 'hidden'; // Hide scroll if under max height
+						} else {
+							textareaElement.style.height = textareaElement.style.maxHeight; // Fixed at 4 lines
+							textareaElement.style.overflowY = 'auto'; // Enable scroll if exceeds max height
+						}
+					}
+				});
+
+				textareaElement.focus();
+			}
 		}, 0);
 	}
 
@@ -74,6 +109,7 @@
 
 			const cleanedMessage = removeHtmlTags(message);
 			message = '';
+			resetTextArea();
 
 			if (cleanedMessage.length > 0) {
 				await sendMessage(room.id, user, cleanedMessage);
@@ -277,9 +313,11 @@
 
 	$: otherUserId = Object.keys(users).filter((userId) => userId !== user?.uid)[0];
 
-	$: otherUserName = Object.keys(users)
-		.map((userId) => users[userId].userName || 'Anonymous')
-		.filter((userName) => userName !== user?.userName)[0];
+	$: allUserNames = Object.keys(users).map((userId) => users[userId].userName || 'Anonymous');
+
+	$: otherUserName = allUserNames.filter((userName) => userName !== user?.userName)[0];
+
+	$: minUserNameWidth = Math.max(...allUserNames.map((name) => name.length)) * 20; // calc min required width based on max character width in pixels
 
 	$: optionsList = [
 		'Definitely!',
@@ -314,8 +352,8 @@
 		};
 	});
 
-	$: labelReply = screenWidth < 500 ? 'Reply' : 'Reply to someone';
-	$: labelNew = screenWidth < 500 ? 'New' : 'Start a new conversation';
+	// $: labelReply = screenWidth < 500 ? 'Reply' : 'Reply to someone';
+	$: labelNew = screenWidth < 500 ? 'Start a conversation:' : 'Start a conversation:';
 
 	onMount(async () => {
 		// console.log(chatting);
@@ -330,6 +368,8 @@
 			}
 		}, 1000); // Adjust the timeout duration as needed
 	});
+
+	$: userNameWidth = `${minUserNameWidth}px`;
 </script>
 
 <div class="wrapper">
@@ -337,14 +377,16 @@
 		<div class={`top-overlay${menuOpen ? ' menu-open' : ''}`}>
 			{#if chatting && room?.open && !leavePopupVisible}
 				<div class="leave-link-container">
-					<button
-						class="link"
-						on:click|preventDefault={otherUserName == undefined
-							? handleLeaveRoom
-							: toggleLeavePopup}
-					>
-						End conversation
-					</button>
+					<div class="button-container">
+						<button
+							class="link"
+							on:click|preventDefault={otherUserName == undefined
+								? handleLeaveRoom
+								: toggleLeavePopup}
+						>
+							End conversation
+						</button>
+					</div>
 				</div>
 			{/if}
 			{#if leavePopupVisible}
@@ -425,15 +467,15 @@
 						<!-- <button class="no-border-clear" on:click={clearWarning}>&times;</button> -->
 					</div>
 				{/if}
-				{#if !user}
+				<!-- {#if !user}
 					<p>
 						Share anything you want in an anonymous 1-on-1 conversation, from how your day went to
 						your deepest thoughts and secrets.
 					</p>
-				{/if}
+				{/if} -->
 				<div class={`messages-wrapper${chatting ? '' : ' border'}`}>
 					{#if !chatting}
-						<div class="tabs">
+						<!-- <div class="tabs">
 							{#if messages.length > 0}
 								<div
 									class={`tab${selectedTab == 0 ? '' : ' hidden'}`}
@@ -453,7 +495,10 @@
 							>
 								<div class="label">{labelNew}</div>
 							</div>
-						</div>
+						</div> -->
+						{#if !(messages.length > 0 && selectedTab == 0)}
+							<div><strong>{labelNew}</strong></div>
+						{/if}
 					{/if}
 					<div class={`messages${chatting ? '' : ' border'}`}>
 						<table>
@@ -461,12 +506,16 @@
 								{#each chatting ? messages : lastMessages as message, messageIndex (message.timestamp)}
 									<tr class={user && message.uid === user.uid ? 'grey' : ''}>
 										{#if screenWidth > 600 || !(messageIndex > 0 && message.uid === (chatting ? messages : lastMessages)[messageIndex - 1].uid)}
-											<td style="margin-top: {screenWidth > 600 ? '0' : '1rem'}">
+											<td
+												style="margin-top: {screenWidth > 600
+													? '0'
+													: '1rem'}; min-width: {userNameWidth}"
+											>
 												{#if !(messageIndex > 0 && message.uid === (chatting ? messages : lastMessages)[messageIndex - 1].uid)}
 													<div class="user-name">
-														{users[message.uid]?.userName
+														{(users[message.uid]?.userName
 															? users[message.uid].userName
-															: 'Anonymous'}
+															: 'Anonymous') + (chatting ? '' : ' says:')}
 													</div>
 												{/if}
 											</td>
@@ -483,24 +532,33 @@
 									<td class={`${chatting ? 'bottom-spacer' : ''}`}></td>
 								</tr>
 								<tr class={`${chatting ? 'sticky border-top' : ''}`}>
-									{#if screenWidth > 600}
-										<td class={`border-top${chatting ? ' grey' : ''}`}>
+									{#if screenWidth > 600 && chatting}
+										<td
+											class={`border-top${chatting ? ' grey' : ''}`}
+											style="min-width: {userNameWidth}"
+										>
 											<div class="user-name">
 												{user?.userName ||
 													(selectedTab == 0 && messages.length > 0 ? 'You' : 'Opening message')}
 											</div>
 										</td>
 									{/if}
-									<td width="100%" class={`message${chatting ? ' chatting' : ''}`}>
-										<form>
+									<td
+										width="100%"
+										class={`message${chatting ? ' chatting' : ''}`}
+										colspan={chatting ? 1 : 2}
+									>
+										<form class={`${chatting ? 'left' : ''}`}>
 											<textarea
 												bind:value={message}
 												bind:this={textareaElement}
-												placeholder=""
+												placeholder={chatting || selectedTab == 1 || messages.length === 0
+													? 'Type a message..'
+													: 'Type a response..'}
 												required
 												on:keydown={handleKeydown}
 											/>
-											<div class="buttonGroup">
+											<div class={`buttonGroup${screenWidth <= 600 ? ' float' : ''}`}>
 												{#if chatting}
 													<button
 														class="primary"
@@ -528,6 +586,32 @@
 							{/if}
 						</table>
 					</div>
+					{#if !chatting}
+						<div class="links">
+							{#if messages.length > 0 && selectedTab == 0}
+								<button
+									class="link"
+									on:click={() => {
+										handleUserNeverAuthenticated();
+									}}>{'Try another'}</button
+								>
+								<button
+									class="link"
+									on:click={() => {
+										selectedTab = 1;
+									}}>{'Start a new conversation'}</button
+								>
+							{:else if messages.length > 0}
+								<button
+									class="link"
+									on:click={() => {
+										handleUserNeverAuthenticated();
+										selectedTab = 0;
+									}}>{'Join a conversation'}</button
+								>
+							{/if}
+						</div>
+					{/if}
 				</div>
 			{:else}
 				<p>Loading...</p>
@@ -537,7 +621,7 @@
 </div>
 
 <style lang="scss">
-	$top-bar-height: 4rem;
+	$top-bar-height: 3.5rem;
 	$top-bar: $top-bar-height - 2rem;
 	$divider-height: 0.125rem;
 	$menu-content-gap: 0.5rem;
@@ -546,8 +630,8 @@
 	$top-menu-height-sm: 30rem;
 
 	$header-height: $top-bar-height + $divider-height;
-	$header-height-lg: $header-height + $menu-content-gap + $top-menu-height-lg;
-	$header-height-sm: $header-height + $menu-content-gap + $top-menu-height-sm;
+	$header-height-lg: $header-height + $top-menu-height-lg - $divider-height;
+	$header-height-sm: $header-height + $top-menu-height-sm - $divider-height;
 
 	$footer-height-lg: 8rem;
 	$footer-height-sm: 12rem;
@@ -586,6 +670,8 @@
 			td {
 				padding: 0.5rem 2rem 0.5rem 0;
 				vertical-align: top;
+				word-wrap: break-word; /* This breaks words at the edge of the container */
+				overflow-wrap: break-word; /* Alternative syntax */
 
 				&.border-top {
 					padding-top: 1rem;
@@ -601,7 +687,7 @@
 				// }
 
 				&.bottom-spacer {
-					height: 120px;
+					height: 160px;
 				}
 			}
 			td:last-child {
@@ -677,15 +763,21 @@
 				position: relative;
 			}
 
+			.links {
+				margin-top: 2rem;
+				display: flex;
+				gap: 2rem;
+			}
+
 			.messages {
-				padding-bottom: 2rem;
+				// padding-bottom: 2rem;
 
 				&.border {
-					background-color: rgb(230, 230, 230);
-					border: solid 1px var(--color-bg-0-dark);
-					padding: 1.5rem;
-					position: relative;
-					z-index: 25;
+					// background-color: rgb(230, 230, 230);
+					// border: solid 1px var(--color-bg-0-dark);
+					// padding: 1.5rem;
+					// position: relative;
+					// z-index: 25;
 
 					textarea {
 						background-color: white;
@@ -713,9 +805,17 @@
 		.leave-link-container {
 			max-width: 800px;
 			margin: 0 auto;
-			padding: 1.5rem 2rem;
 			display: flex;
 			justify-content: flex-end;
+			padding: 0 2rem;
+
+			.button-container {
+				padding-left: 1rem;
+				padding-top: 1rem;
+				padding-bottom: 1rem;
+				background-color: var(--color-bg-0); /* 50% opacity */
+				// backdrop-filter: blur(5px);
+			}
 		}
 		.leave-form-container {
 			max-width: 800px;
@@ -788,14 +888,20 @@
 	}
 	form {
 		// padding-top: 2rem;
-		width: calc(100% + 1rem);
+		// width: calc(100% + 1rem);
+		width: 100%;
 		display: flex;
 		justify-content: flex-end;
-		gap: 1rem;
+		padding-bottom: 1rem;
+		// gap: 1rem;
 
 		position: relative;
-		left: -1rem;
 		top: 0.125rem;
+
+		&.left {
+			left: -1rem;
+			width: calc(100% + 1rem);
+		}
 
 		textarea {
 			// height: 46px; // match button
@@ -812,13 +918,25 @@
 			outline: none; /* removes the default focus outline */
 		}
 
+		textarea::placeholder {
+			color: #888; /* Set color */
+			// font-size: 14px;     /* Set font size */
+			// font-style: italic;  /* Set font style */
+			// opacity: 1;          /* Adjust opacity if needed */
+		}
+
 		.buttonGroup {
 			// height: 100%;
 			display: flex;
 			flex-direction: column;
-			justify-content: flex-end;
+			justify-content: flex-start;
 			gap: 0.5rem;
-			padding-bottom: 1rem;
+
+			&.float {
+				position: absolute;
+				right: 0;
+				top: -48px;
+			}
 		}
 	}
 	.grey {
@@ -828,7 +946,7 @@
 	tr.sticky {
 		background-color: var(--color-bg-0);
 		// background-color: white;
-		padding-top: 0.5rem;
+		// padding-top: 0.5rem;
 
 		position: fixed;
 		left: 0;
@@ -855,6 +973,14 @@
 		}
 	}
 
+	@media (max-width: 700px) {
+		.top-overlay {
+			&.menu-open {
+				top: $header-height-sm;
+			}
+		}
+	}
+
 	@media (max-width: 600px) {
 		table {
 			tr {
@@ -870,12 +996,12 @@
 					padding-bottom: 0.25rem;
 
 					&.bottom-spacer {
-						height: 200px;
+						height: 100px;
 					}
 				}
 
 				&.sticky {
-					padding-top: 1rem;
+					// padding-top: 1rem;
 					// td:last-child {
 					// 	padding-top: 0.5rem;
 					// 	padding-bottom: 8rem;
@@ -897,19 +1023,21 @@
 
 	@media (max-width: 400px) {
 		.container {
-			padding: 0 1rem;
+			padding: 0 0.75rem;
 		}
 		tr.sticky {
-			padding-left: 1rem;
-			padding-right: 1rem;
+			padding-left: 0.75rem;
+			padding-right: 0.75rem;
 		}
 		.top-overlay {
 			.leave-link-container {
-				padding: 1.5rem 1rem;
+				.button-container {
+					padding: 1rem 0.75rem;
+				}
 			}
 			.leave-form-container {
 				.menu-container {
-					padding: 2rem 1rem;
+					padding: 2rem 0.75rem;
 
 					.menu-content {
 						.button-group {
@@ -917,10 +1045,6 @@
 						}
 					}
 				}
-			}
-
-			&.menu-open {
-				top: $header-height-sm;
 			}
 		}
 		// table {

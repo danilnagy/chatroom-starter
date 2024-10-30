@@ -47,6 +47,10 @@ export function formatTimeDifference(timestamp: number): string {
     }
 }
 
+function breakLongWords(text: string, limit: number) {
+    return text.replace(new RegExp(`(\\w{${limit}})(?=\\w)`, 'g'), '$1\u200B');
+}
+
 /**
  * Utility function to remove HTML tags from a string
  * @param input - The input string to be cleaned
@@ -54,7 +58,7 @@ export function formatTimeDifference(timestamp: number): string {
  */
 export function removeHtmlTags(input: string): string {
     const div = document.createElement('div');
-    div.innerHTML = input;
+    div.innerHTML = breakLongWords(input, 25);
     return div.textContent || div.innerText || '';
 }
 

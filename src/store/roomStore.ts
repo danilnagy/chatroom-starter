@@ -11,8 +11,9 @@ export interface Room {
 }
 
 export interface RoomPartial {
-    // userCount: number;
-    open: boolean;
+    userCount?: number;
+    exposeCount?: number;
+    open?: boolean;
 }
 
 const roomStore = writable<Room | undefined>(undefined);

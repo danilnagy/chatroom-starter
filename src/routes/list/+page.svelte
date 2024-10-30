@@ -49,6 +49,11 @@
 		});
 	}
 
+	async function handleResetRoom(room: Room) {
+		await updateRoom(room.id, {
+			exposeCount: 0
+		});
+	}
 	async function handleDropRoom(user: User) {
 		await updateUserRoom(user, '');
 	}
@@ -93,11 +98,13 @@
 					<tbody>
 						{#each filteredRooms as room (room.timestamp)}
 							<tr
-								class={`relative trigger ${room.open && room.userCount === 2
-									? 'green'
-									: room.open && room.userCount === 1
-										? 'orange'
-										: 'disabled'}`}
+								class={`relative trigger ${
+									room.open && room.userCount === 2
+										? 'green'
+										: room.open && room.userCount === 1
+											? 'orange'
+											: 'disabled'
+								}`}
 								on:click|preventDefault={() => onClickRoom(room)}
 							>
 								<td class={room === selectedRoom ? 'selected' : 'not-selected'}>
@@ -116,7 +123,10 @@
 								<td>
 									{room.messageCount}
 								</td>
-								<div class="buttonOverlay hide"><button on:click|stopPropagation={() => handleCloseRoom(room)}>Close</button></div>
+								<div class="buttonOverlay hide">
+									<button on:click|stopPropagation={() => handleResetRoom(room)}>Reset</button>
+									<button on:click|stopPropagation={() => handleCloseRoom(room)}>Close</button>
+								</div>
 							</tr>
 						{/each}
 					</tbody>
@@ -142,7 +152,9 @@
 								<td>
 									{user.currentRoomId}
 								</td>
-								<div class="buttonOverlay hide"><button on:click|stopPropagation={() => handleDropRoom(user)}>Drop room</button></div>
+								<div class="buttonOverlay hide">
+									<button on:click|stopPropagation={() => handleDropRoom(user)}>Drop room</button>
+								</div>
 							</tr>
 						{/each}
 					</tbody>
@@ -158,10 +170,10 @@
 
 <style lang="scss">
 	.hide {
-	visibility: hidden;
+		visibility: hidden;
 	}
-	.trigger:hover>.hide {
-	visibility: visible;
+	.trigger:hover > .hide {
+		visibility: visible;
 	}
 	.buttonOverlay {
 		position: absolute;
@@ -170,7 +182,7 @@
 		right: 0;
 		z-index: 100;
 		display: flex;
-
+		gap: 0.25rem;
 	}
 	.relative {
 		position: relative;

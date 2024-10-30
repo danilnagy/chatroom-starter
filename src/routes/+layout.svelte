@@ -552,10 +552,10 @@
 </div>
 
 <style lang="scss">
-	$top-bar-height: 4rem;
+	$top-bar-height: 3.5rem;
 	$top-bar: $top-bar-height - 2rem;
 	$divider-height: 0.125rem;
-	$menu-content-gap: 0.5rem;
+	$menu-content-gap: 0;
 
 	$top-menu-height-lg: 15rem;
 	$top-menu-height-sm: 30rem;
@@ -666,7 +666,6 @@
 		.menu-content {
 			box-sizing: border-box;
 			max-width: 28rem;
-			max-height: 16rem;
 			margin: 0;
 			padding: 1rem 2rem;
 			display: flex;
@@ -805,6 +804,7 @@
 			min-height: $top-menu-height-sm;
 			max-height: $top-menu-height-sm;
 			flex-direction: column;
+			justify-content: flex-start;
 
 			.menu-content:last-child {
 				align-items: flex-start; // Apply only to the last child
@@ -847,14 +847,14 @@
 		}
 		.menu {
 			.menu-content {
-				padding: 1rem;
+				padding: 0.75rem;
 			}
 		}
 
 		.wrapper {
 			.top-bar-container {
 				.top-bar {
-					padding: 0 1rem;
+					padding: 0 0.75rem;
 				}
 			}
 		}
