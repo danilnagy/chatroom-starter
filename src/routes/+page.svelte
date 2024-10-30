@@ -51,7 +51,7 @@
 		if (textareaElement) {
 			const maxHeight = `${maxLines * 20 + 32}px`;
 			// textareaElement.style.height = chatting ? (screenWidth > 600 ? maxHeight : 'auto') : '52px';
-			textareaElement.style.height = chatting ? 'auto' : '52px';
+			textareaElement.style.height = '72px';
 			textareaElement.style.maxHeight = maxHeight; // Maximum height: 4 lines
 			textareaElement.style.overflowY = 'auto'; // Hide scroll if under max height
 		}
@@ -317,7 +317,7 @@
 
 	$: otherUserName = allUserNames.filter((userName) => userName !== user?.userName)[0];
 
-	$: minUserNameWidth = Math.max(...allUserNames.map((name) => name.length)) * 20; // calc min required width based on max character width in pixels
+	$: minUserNameWidth = Math.max(...allUserNames.map((name) => name.length)) * 16; // calc min required width based on max character width in pixels
 
 	$: optionsList = [
 		'Definitely!',
@@ -786,7 +786,7 @@
 
 					textarea {
 						background-color: white;
-						height: 48px; // match button
+						height: 52px !important; // match button
 						overflow-y: hidden;
 					}
 
@@ -916,7 +916,7 @@
 		textarea {
 			// height: 46px; // match button
 			background-color: rgba(255, 255, 255, 0);
-			height: 120px; // match button
+			height: 72px; // match button
 			box-sizing: border-box;
 			flex-grow: 1;
 			padding: 1rem;
