@@ -50,8 +50,9 @@
 	function resetTextArea() {
 		if (textareaElement) {
 			const maxHeight = `${maxLines * 20 + 32}px`;
-			textareaElement.style.height = screenWidth > 600 ? maxHeight : 'auto';
+			textareaElement.style.height = chatting ? (screenWidth > 600 ? maxHeight : 'auto') : '52px';
 			textareaElement.style.maxHeight = maxHeight; // Maximum height: 4 lines
+			textareaElement.style.overflowY = 'auto'; // Hide scroll if under max height
 		}
 	}
 
@@ -60,7 +61,6 @@
 		// Use a timeout to make sure it's in the DOM and available
 		setTimeout(() => {
 			if (textareaElement && !initialized) {
-				console.warn('textareaElement - 1');
 				initialized = true;
 
 				resetTextArea();
@@ -68,11 +68,10 @@
 				// Adjust the height as the user types
 				textareaElement.addEventListener('input', () => {
 					if (textareaElement) {
-						console.warn('textareaElement - 2');
 						const numLines = (textareaElement.scrollHeight - 32) / 20;
 
 						if (numLines <= maxLines) {
-							const newHeight = Math.max(numLines, 2) * 20 + 32;
+							const newHeight = (chatting ? Math.max(numLines, 2) : numLines) * 20 + 32;
 							textareaElement.style.height = `${newHeight}px`; // Grow up to 4 lines
 							textareaElement.style.overflowY = 'hidden'; // Hide scroll if under max height
 						} else {
@@ -786,7 +785,7 @@
 					}
 
 					button {
-						height: 48px;
+						height: 52px;
 						width: 120px;
 						max-width: 120px;
 					}
