@@ -50,7 +50,8 @@
 	function resetTextArea() {
 		if (textareaElement) {
 			const maxHeight = `${maxLines * 20 + 32}px`;
-			textareaElement.style.height = chatting ? (screenWidth > 600 ? maxHeight : 'auto') : '52px';
+			// textareaElement.style.height = chatting ? (screenWidth > 600 ? maxHeight : 'auto') : '52px';
+			textareaElement.style.height = chatting ? 'auto' : '52px';
 			textareaElement.style.maxHeight = maxHeight; // Maximum height: 4 lines
 			textareaElement.style.overflowY = 'auto'; // Hide scroll if under max height
 		}
@@ -495,15 +496,17 @@
 								<div class="label">{labelNew}</div>
 							</div>
 						</div> -->
-						{#if !(messages.length > 0 && selectedTab == 0)}
+						<!-- {#if !(messages.length > 0 && selectedTab == 0)}
 							<div><strong>{labelNew}</strong></div>
-						{/if}
+						{/if} -->
 					{/if}
 					<div class={`messages${chatting ? '' : ' border'}`}>
 						<table>
 							{#if selectedTab == 0}
 								{#each chatting ? messages : lastMessages as message, messageIndex (message.timestamp)}
-									<tr class={user && message.uid === user.uid ? 'grey' : ''}>
+									<tr
+										class={`${user && message.uid === user.uid ? 'grey' : ''}${chatting ? ' column' : ''}`}
+									>
 										{#if screenWidth > 600 || !(messageIndex > 0 && message.uid === (chatting ? messages : lastMessages)[messageIndex - 1].uid)}
 											<td
 												style="margin-top: {screenWidth > 600
@@ -526,6 +529,9 @@
 									</tr>
 								{/each}
 							{/if}
+							{#if !(messages.length > 0 && selectedTab == 0)}
+								<tr><td colspan="2"><strong>{labelNew}</strong></td></tr>
+							{/if}
 							{#if !leavePopupVisible && !(chatting && !room?.open)}
 								<tr>
 									<td class={`${chatting ? 'bottom-spacer' : ''}`}></td>
@@ -545,9 +551,9 @@
 									<td
 										width="100%"
 										class={`message${chatting ? ' chatting' : ''}`}
-										colspan={chatting ? 1 : 2}
+										colspan={chatting && screenWidth > 600 ? 1 : 2}
 									>
-										<form class={`${chatting ? 'left' : ''}`}>
+										<form class={`${chatting ? (screenWidth > 600 ? 'left' : 'full') : ''}`}>
 											<textarea
 												bind:value={message}
 												bind:this={textareaElement}
@@ -557,7 +563,7 @@
 												required
 												on:keydown={handleKeydown}
 											/>
-											<div class={`buttonGroup${screenWidth <= 600 ? ' float' : ''}`}>
+											<div class={`buttonGroup${chatting && screenWidth <= 600 ? ' float' : ''}`}>
 												{#if chatting}
 													<button
 														class="primary"
@@ -902,6 +908,11 @@
 			width: calc(100% + 1rem);
 		}
 
+		&.full {
+			left: -1rem;
+			width: calc(100vw - 1rem);
+		}
+
 		textarea {
 			// height: 46px; // match button
 			background-color: rgba(255, 255, 255, 0);
@@ -983,9 +994,6 @@
 	@media (max-width: 600px) {
 		table {
 			tr {
-				display: flex;
-				flex-direction: column;
-
 				td:first-child {
 					// padding-bottom: 0.5rem;
 				}
@@ -1006,10 +1014,14 @@
 					// 	padding-bottom: 8rem;
 					// }
 				}
+
+				&.column {
+					display: flex;
+					flex-direction: column;
+				}
 			}
 		}
 		form {
-			flex-direction: column;
 			gap: 0;
 			.buttonGroup {
 				flex-direction: row;
@@ -1018,21 +1030,18 @@
 	}
 
 	@media (max-width: 500px) {
-	}
-
-	@media (max-width: 400px) {
 		.container {
 			padding: 0 0.75rem;
 		}
-		tr.sticky {
-			padding-left: 0.75rem;
-			padding-right: 0.75rem;
+		tr {
+			&.sticky {
+				padding-left: 0.75rem;
+				padding-right: 0.75rem;
+			}
 		}
 		.top-overlay {
 			.leave-link-container {
-				.button-container {
-					padding: 1rem 0.75rem;
-				}
+				padding: 0 0.75rem;
 			}
 			.leave-form-container {
 				.menu-container {
@@ -1044,6 +1053,11 @@
 						}
 					}
 				}
+			}
+		}
+		form {
+			&.full {
+				width: calc(100vw + 0.25rem);
 			}
 		}
 		// table {

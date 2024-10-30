@@ -127,13 +127,13 @@ export async function subscribeAll(
 ) {
 	subscribeToRoom(roomId, async (roomData) => {
 		console.log('-> Incoming [roomData]: ', roomData);
-		if (roomData.userCount === 0 || roomData.open === false) {
+		if (roomData.userCount === 0) {
 			if (user) {
 				await updateUserRoom(user, '');
 			}
 			reloadPage();
 		}
-		if (temp && roomData.userCount === 2) {
+		if (temp && (roomData.userCount === 2 || roomData.open === false)) {
 			reloadPage();
 		}
 		roomStore.set(roomData);
