@@ -272,10 +272,6 @@
 		}
 	}
 
-	$: {
-		console.log('user', user);
-	}
-
 	// Reactive statement to handle logged-in users
 	$: if (user?.uid) {
 		console.log('Loaded user', user);
