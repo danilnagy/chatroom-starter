@@ -109,7 +109,6 @@ export function parseSignInLink() {
 			// attacks, ask the user to provide the associated email again. For example:
 			email = window.prompt('Please enter your email address to confirm');
 		}
-		console.log('email', email);
 		// The client SDK will parse the code from the link for you.
 		signInWithEmailLink(auth, email || '', window.location.href)
 			.then((result) => {

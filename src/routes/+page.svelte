@@ -352,7 +352,6 @@
 	$: labelNew = screenWidth < 500 ? 'Start a conversation:' : 'Start a conversation:';
 
 	onMount(async () => {
-		// console.log(chatting);
 		fetchWords();
 		parseSignInLink();
 

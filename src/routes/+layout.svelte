@@ -215,7 +215,6 @@
 	$: menuOpen = $menuOpenStore;
 
 	function handleMenuToggle() {
-		console.log('Menu toggle');
 		popupVisible.set(false);
 		menuOpenStore.set(!menuOpen);
 	}
@@ -247,7 +246,6 @@
 
 	function handleSroll(event: any) {
 		const target = event.target.scrollingElement;
-		console.log(target.clientHeight, target.scrollHeight, target.scrollTop);
 		if (target.scrollTop < target.scrollHeight - target.clientHeight - 60) {
 			scrolling.set(true);
 		} else {
