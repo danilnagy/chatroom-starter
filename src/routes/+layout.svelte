@@ -299,9 +299,7 @@
 			{:else}
 				<div class="top-form">
 					<div class="button-group">
-						<button class="no-border" on:click={() => openModal('LOGIN', () => {})}
-							><strong>Log In</strong></button
-						>
+						<button class="no-border" on:click={() => openModal('LOGIN', () => {})}>Log In</button>
 						<span>|</span>
 						<button class="no-border" on:click={() => openModal('SIGNUP', () => {})}>Sign Up</button
 						>

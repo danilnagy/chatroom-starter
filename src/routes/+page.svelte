@@ -141,7 +141,7 @@
 				doReplyMessage(user);
 				message = '';
 			} else {
-				openModal('LOGIN', async (newUser: User, run: boolean) => {
+				openModal('SIGNUP', async (newUser: User, run: boolean) => {
 					if (run) doReplyMessage(newUser);
 					message = '';
 				});
@@ -221,7 +221,7 @@
 			doCreateRoom(user);
 			message = '';
 		} else {
-			openModal('LOGIN', async (newUser: User, run: boolean) => {
+			openModal('SIGNUP', async (newUser: User, run: boolean) => {
 				if (run) doCreateRoom(newUser);
 				message = '';
 			});
@@ -522,7 +522,10 @@
 												{/if}
 											</td>
 										{/if}
-										<td width="99%">
+										<td
+											width="99%"
+											class={`${messageIndex > 0 && message.uid === (chatting ? messages : lastMessages)[messageIndex - 1].uid ? 'less-padding' : ''}`}
+										>
 											{@html parseMessage(message.content, words)}
 										</td>
 										<!-- <td><em>({formatTimestamp(message.timestamp)})</em></td> -->
@@ -693,6 +696,10 @@
 
 				&.bottom-spacer {
 					height: 160px;
+				}
+
+				&.less-padding {
+					padding-top: 0;
 				}
 			}
 			td:last-child {
@@ -947,6 +954,11 @@
 				right: 0;
 				top: -48px;
 			}
+
+			button {
+				padding-left: 2rem;
+				padding-right: 2rem;
+			}
 		}
 	}
 	.grey {
@@ -1025,6 +1037,11 @@
 			gap: 0;
 			.buttonGroup {
 				flex-direction: row;
+
+				button {
+					padding-left: 2rem;
+					padding-right: 3rem;
+				}
 			}
 		}
 	}
@@ -1049,7 +1066,7 @@
 
 					.menu-content {
 						.button-group {
-							flex-direction: column;
+							// flex-direction: column;
 						}
 					}
 				}
