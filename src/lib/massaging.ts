@@ -185,7 +185,8 @@ export async function incrementExposeCount(roomId: string): Promise<void> {
 
 	try {
 		await updateDoc(roomRef, {
-			exposeCount: increment(1)
+			exposeCount: increment(1),
+			timestamp: Date.now()
 		});
 		console.log(`Incremented exposeCount for room ${roomId}`);
 	} catch (error) {
@@ -198,7 +199,8 @@ export async function incrementUserCount(roomId: string): Promise<void> {
 
 	try {
 		await updateDoc(roomRef, {
-			userCount: increment(1)
+			userCount: increment(1),
+			timestamp: Date.now()
 		});
 		console.log(`Incremented userCount for room ${roomId}`);
 	} catch (error) {
@@ -211,7 +213,8 @@ export async function incrementMessageCount(roomId: string): Promise<void> {
 
 	try {
 		await updateDoc(roomRef, {
-			messageCount: increment(1)
+			messageCount: increment(1),
+			timestamp: Date.now()
 		});
 		console.log(`Incremented messageCount for room ${roomId}`);
 	} catch (error) {
@@ -224,7 +227,8 @@ export async function updateRoom(roomId: string, payload: RoomPartial): Promise<
 
 	try {
 		await updateDoc(roomRef, {
-			...payload
+			...payload,
+			timestamp: Date.now()
 		});
 		console.log(`Update room ${roomId}`);
 	} catch (error) {

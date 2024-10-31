@@ -952,7 +952,7 @@
 			&.float {
 				position: absolute;
 				right: 0;
-				top: -48px;
+				top: -46px;
 			}
 
 			button {
@@ -1048,21 +1048,21 @@
 
 	@media (max-width: 500px) {
 		.container {
-			padding: 0 0.75rem;
+			padding: 0 1rem; //
 		}
 		tr {
 			&.sticky {
-				padding-left: 0.75rem;
-				padding-right: 0.75rem;
+				padding-left: 1rem; //
+				padding-right: 1rem; //
 			}
 		}
 		.top-overlay {
 			.leave-link-container {
-				padding: 0 0.75rem;
+				padding: 0 1rem; //
 			}
 			.leave-form-container {
 				.menu-container {
-					padding: 2rem 0.75rem;
+					padding: 2rem 1rem; //
 
 					.menu-content {
 						.button-group {

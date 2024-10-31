@@ -845,14 +845,14 @@
 		}
 		.menu {
 			.menu-content {
-				padding: 0.75rem;
+				padding: 1rem;
 			}
 		}
 
 		.wrapper {
 			.top-bar-container {
 				.top-bar {
-					padding: 0 0.75rem;
+					padding: 0 1rem;
 				}
 			}
 		}
