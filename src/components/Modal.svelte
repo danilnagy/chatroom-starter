@@ -51,7 +51,7 @@
 		/* backdrop-filter: blur(2px); */
 	}
 	.modal-container {
-		background-color: #0e0e0e;
+		background-color: var(--color-bg-0-dark);
 		color: white;
 		overflow: clip;
 		width: 800px;
@@ -89,6 +89,8 @@
 	@media (max-width: 700px) {
 		.modal-container {
 			max-width: 100vw;
+			max-height: 100vh;
+			overflow-y: auto;
 		}
 		.modal-content {
 			padding: 2rem 1rem;

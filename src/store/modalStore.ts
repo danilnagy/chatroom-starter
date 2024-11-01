@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { type User } from '../store/userStore';
 
 interface ModalState {
     isOpen: boolean;
@@ -12,7 +13,7 @@ export const modalState = writable<ModalState>({
     callback: () => { },
 });
 
-export function openModal(state = 'SIGNUP', callback: () => void) {
+export function openModal(state = 'SIGNUP', callback: (user: User, run: boolean) => void) {
     modalState.set({ isOpen: true, state, callback });
 }
 
