@@ -433,10 +433,6 @@
 			}
 		}
 
-		// if (Notification.permission !== 'granted') {
-		// 	Notification.requestPermission();
-		// }
-
 		// Set a timeout to check if user remains null after 2 seconds
 		userCheckTimeout = window.setTimeout(() => {
 			// Explicitly using window.setTimeout
