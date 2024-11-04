@@ -387,14 +387,13 @@
 			lastMessageContent = latestMessageContent;
 
 			if (user && latestMessage.uid !== user.uid) {
+				playChime();
 				if (document.hidden) {
 					// Show notification and play chime
 					showNotification(
 						`${users[latestMessage.uid]?.userName ? users[latestMessage.uid].userName : 'Anonymous'} says:`,
 						latestMessageContent
 					);
-				} else {
-					playChime();
 				}
 			}
 		}
