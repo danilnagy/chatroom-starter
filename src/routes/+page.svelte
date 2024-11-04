@@ -355,6 +355,7 @@
 
 	let chime: HTMLAudioElement | undefined;
 	let canPlaySound = false; // Flag to track if sound can play
+	let notificationsSupported = false; // Flag to track if notifications are supported
 
 	// Function to play sound if allowed
 	function playChime() {
@@ -368,7 +369,7 @@
 
 	// Function to show notification
 	function showNotification(heading: string, message: string) {
-		if (Notification.permission === 'granted') {
+		if (notificationsSupported && Notification.permission === 'granted') {
 			new Notification(heading, {
 				body: message,
 				icon: '/favicon-96x96.png' // Optional
@@ -407,8 +408,15 @@
 			try {
 				chime = new Audio('/pop.wav');
 
-				if (Notification.permission !== 'granted') {
-					Notification.requestPermission();
+				// Check if Notification API is supported
+				if ('Notification' in window) {
+					notificationsSupported = true;
+
+					if (Notification.permission !== 'granted') {
+						Notification.requestPermission();
+					}
+				} else {
+					console.warn('Notifications are not supported on this browser.');
 				}
 
 				// Listen for the first user interaction
