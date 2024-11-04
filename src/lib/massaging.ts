@@ -54,7 +54,7 @@ async function fetchUserNames(userIds: string[]): Promise<void> {
 	});
 }
 
-function getUniqueUIDs(messages: { uid: string;[key: string]: any }[]): string[] {
+function getUniqueUIDs(messages: { uid: string; [key: string]: any }[]): string[] {
 	const uidSet = new Set<string>();
 
 	messages.forEach((message) => {
