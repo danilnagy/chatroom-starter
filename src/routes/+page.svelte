@@ -427,6 +427,7 @@
 				};
 
 				window.addEventListener('click', enableSound);
+				window.removeEventListener('touchstart', enableSound); // Remove touch listener after interaction
 			} catch (error) {
 				console.error('Error setting up notifications:', error);
 			}
