@@ -404,20 +404,24 @@
 		parseSignInLink();
 
 		if (typeof window !== 'undefined') {
-			chime = new Audio('/pop.wav');
+			try {
+				chime = new Audio('/pop.wav');
 
-			if (Notification.permission !== 'granted') {
-				Notification.requestPermission();
+				if (Notification.permission !== 'granted') {
+					Notification.requestPermission();
+				}
+
+				// Listen for the first user interaction
+				const enableSound = () => {
+					console.log('ENABLING SOUND');
+					canPlaySound = true;
+					window.removeEventListener('click', enableSound); // Remove the listener after interaction
+				};
+
+				window.addEventListener('click', enableSound);
+			} catch (error) {
+				console.error('Error setting up notifications:', error);
 			}
-
-			// Listen for the first user interaction
-			const enableSound = () => {
-				console.log('ENABLING SOUND');
-				canPlaySound = true;
-				window.removeEventListener('click', enableSound); // Remove the listener after interaction
-			};
-
-			window.addEventListener('click', enableSound);
 		}
 
 		// if (Notification.permission !== 'granted') {
