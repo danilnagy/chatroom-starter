@@ -351,9 +351,87 @@
 	// $: labelReply = screenWidth < 500 ? 'Reply' : 'Reply to someone';
 	$: labelNew = screenWidth < 500 ? 'Start a conversation:' : 'Start a conversation:';
 
+	let lastMessageContent = ''; // Track the last message content
+
+	let chime: HTMLAudioElement | undefined;
+	let canPlaySound = false; // Flag to track if sound can play
+	let notificationsSupported = false; // Flag to track if notifications are supported
+
+	// Function to play sound if allowed
+	function playChime() {
+		if (chime && canPlaySound) {
+			console.log('PLAYING CHIME');
+			chime.play().catch((error) => {
+				console.error('Sound playback failed:', error);
+			});
+		}
+	}
+
+	// Function to show notification
+	function showNotification(heading: string, message: string) {
+		if (notificationsSupported && Notification.permission === 'granted') {
+			new Notification(heading, {
+				body: message,
+				icon: '/favicon-96x96.png' // Optional
+			});
+		}
+	}
+
+	// Watch for new messages
+	$: if (messages.length > 0) {
+		const latestMessage = messages[messages.length - 1]; // Assuming each message has a `content` property
+		const latestMessageContent = latestMessage.content;
+
+		// Check if the latest message is different from the last tracked message
+		if (latestMessageContent !== lastMessageContent) {
+			// Update the last message content
+			lastMessageContent = latestMessageContent;
+
+			if (user && latestMessage.uid !== user.uid) {
+				playChime();
+				if (document.hidden) {
+					// Show notification and play chime
+					showNotification(
+						`${users[latestMessage.uid]?.userName ? users[latestMessage.uid].userName : 'Anonymous'} says:`,
+						latestMessageContent
+					);
+				}
+			}
+		}
+	}
+
 	onMount(async () => {
 		fetchWords();
 		parseSignInLink();
+
+		if (typeof window !== 'undefined') {
+			try {
+				chime = new Audio('/pop.wav');
+
+				// Check if Notification API is supported
+				if ('Notification' in window) {
+					notificationsSupported = true;
+
+					if (Notification.permission !== 'granted') {
+						Notification.requestPermission();
+					}
+				} else {
+					console.warn('Notifications are not supported on this browser.');
+				}
+
+				// Listen for the first user interaction
+				const enableSound = () => {
+					console.log('ENABLING SOUND');
+					canPlaySound = true;
+					window.removeEventListener('click', enableSound); // Remove the listener after interaction
+				};
+
+				window.addEventListener('click', enableSound);
+				window.removeEventListener('touchstart', enableSound); // Remove touch listener after interaction
+			} catch (error) {
+				console.error('Error setting up notifications:', error);
+			}
+		}
 
 		// Set a timeout to check if user remains null after 2 seconds
 		userCheckTimeout = window.setTimeout(() => {
