@@ -367,13 +367,26 @@
 		}
 	}
 
-	// Function to show notification
-	function showNotification(heading: string, message: string) {
+	// // Function to show notification
+	// function showNotification(heading: string, message: string) {
+	// 	if (notificationsSupported && Notification.permission === 'granted') {
+	// 		new Notification(heading, {
+	// 			body: message,
+	// 			icon: '/favicon-96x96.png' // Optional
+	// 		});
+	// 	}
+	// }
+
+	// Function to show notification via Service Worker
+	async function showNotification(heading: string, message: string) {
 		if (notificationsSupported && Notification.permission === 'granted') {
-			new Notification(heading, {
+			const registration = await navigator.serviceWorker.ready;
+			registration.showNotification(heading, {
 				body: message,
-				icon: '/favicon-96x96.png' // Optional
+				icon: '/favicon-96x96.png'
 			});
+		} else {
+			console.warn('Notifications or Service Worker not supported.');
 		}
 	}
 
@@ -404,11 +417,12 @@
 		fetchWords();
 		parseSignInLink();
 
-		if (typeof window !== 'undefined') {
+		if ('serviceWorker' in navigator) {
 			try {
-				chime = new Audio('/pop.wav');
+				const registration = await navigator.serviceWorker.register('/service-worker.js');
+				console.log('Service Worker registered with scope:', registration.scope);
 
-				// Check if Notification API is supported
+				// Request notification permission
 				if ('Notification' in window) {
 					notificationsSupported = true;
 
@@ -418,6 +432,25 @@
 				} else {
 					console.warn('Notifications are not supported on this browser.');
 				}
+			} catch (error) {
+				console.error('Service Worker registration failed:', error);
+			}
+		}
+
+		if (typeof window !== 'undefined') {
+			try {
+				chime = new Audio('/pop.wav');
+
+				// Check if Notification API is supported
+				// if ('Notification' in window) {
+				// 	notificationsSupported = true;
+
+				// 	if (Notification.permission !== 'granted') {
+				// 		Notification.requestPermission();
+				// 	}
+				// } else {
+				// 	console.warn('Notifications are not supported on this browser.');
+				// }
 
 				// Listen for the first user interaction
 				const enableSound = () => {
@@ -429,7 +462,7 @@
 				window.addEventListener('click', enableSound);
 				window.removeEventListener('touchstart', enableSound); // Remove touch listener after interaction
 			} catch (error) {
-				console.error('Error setting up notifications:', error);
+				console.error('Error setting up sound alerts:', error);
 			}
 		}
 
