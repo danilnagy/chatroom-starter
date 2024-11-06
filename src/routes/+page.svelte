@@ -35,7 +35,15 @@
 	import wordStore from '../store/wordStore';
 	import loadedStore from '../store/loadedStore';
 	import { openModal } from '../store/modalStore';
-	import { menuOpenStore, popupVisible, scrolling } from '../store/eventStore';
+	import {
+		menuOpenStore,
+		popupVisible,
+		scrolling,
+		soundsEnabledStore,
+		notificationsEnabledStore,
+		soundsAvailableStore,
+		notificationsAvailableStore
+	} from '../store/eventStore';
 
 	import RadioPicker from '../components/RadioPicker.svelte';
 
@@ -355,11 +363,15 @@
 
 	let chime: HTMLAudioElement | undefined;
 	let canPlaySound = false; // Flag to track if sound can play
+
+	$: soundsEnabled = $soundsEnabledStore;
+	$: notificationsEnabled = $notificationsEnabledStore;
+
 	let notificationsSupported = false; // Flag to track if notifications are supported
 
 	// Function to play sound if allowed
 	function playChime() {
-		if (chime && canPlaySound) {
+		if (chime && canPlaySound && soundsEnabled) {
 			console.log('PLAYING CHIME');
 			chime.play().catch((error) => {
 				console.error('Sound playback failed:', error);
@@ -367,13 +379,26 @@
 		}
 	}
 
-	// Function to show notification
-	function showNotification(heading: string, message: string) {
-		if (notificationsSupported && Notification.permission === 'granted') {
-			new Notification(heading, {
+	// // Function to show notification
+	// function showNotification(heading: string, message: string) {
+	// 	if (notificationsSupported && Notification.permission === 'granted') {
+	// 		new Notification(heading, {
+	// 			body: message,
+	// 			icon: '/favicon-96x96.png' // Optional
+	// 		});
+	// 	}
+	// }
+
+	// Function to show notification via Service Worker
+	async function showNotification(heading: string, message: string) {
+		if (notificationsSupported && notificationsEnabled && Notification.permission === 'granted') {
+			const registration = await navigator.serviceWorker.ready;
+			registration.showNotification(heading, {
 				body: message,
-				icon: '/favicon-96x96.png' // Optional
+				icon: '/favicon-96x96.png'
 			});
+		} else {
+			console.warn('Notifications or Service Worker not supported.');
 		}
 	}
 
@@ -400,17 +425,36 @@
 		}
 	}
 
+	const enableSound = () => {
+		canPlaySound = true; // Allow sound to play after this interaction
+		soundsAvailableStore.set(true);
+		console.log('Sound enabled');
+
+		// Play a sound to confirm interaction (optional)
+		// if (chime) {
+		// 	chime.play().catch((error) => {
+		// 		console.error('Sound playback failed:', error);
+		// 	});
+		// }
+
+		// Remove the event listeners after the first interaction
+		window.removeEventListener('click', enableSound);
+		window.removeEventListener('touchstart', enableSound);
+	};
+
 	onMount(async () => {
 		fetchWords();
 		parseSignInLink();
 
-		if (typeof window !== 'undefined') {
+		if ('serviceWorker' in navigator) {
 			try {
-				chime = new Audio('/pop.wav');
+				const registration = await navigator.serviceWorker.register('/service-worker.js');
+				console.log('Service Worker registered with scope:', registration.scope);
 
-				// Check if Notification API is supported
+				// Request notification permission
 				if ('Notification' in window) {
 					notificationsSupported = true;
+					notificationsAvailableStore.set(true);
 
 					if (Notification.permission !== 'granted') {
 						Notification.requestPermission();
@@ -418,18 +462,20 @@
 				} else {
 					console.warn('Notifications are not supported on this browser.');
 				}
-
-				// Listen for the first user interaction
-				const enableSound = () => {
-					console.log('ENABLING SOUND');
-					canPlaySound = true;
-					window.removeEventListener('click', enableSound); // Remove the listener after interaction
-				};
-
-				window.addEventListener('click', enableSound);
-				window.removeEventListener('touchstart', enableSound); // Remove touch listener after interaction
 			} catch (error) {
-				console.error('Error setting up notifications:', error);
+				console.error('Service Worker registration failed:', error);
+			}
+		}
+
+		if (typeof window !== 'undefined') {
+			try {
+				chime = new Audio('/pop.wav');
+
+				// Add both click and touchstart listeners
+				window.addEventListener('click', enableSound);
+				window.addEventListener('touchstart', enableSound);
+			} catch (error) {
+				console.error('Error setting up sound alerts:', error);
 			}
 		}
 
@@ -578,13 +624,13 @@
 							{#if selectedTab == 0}
 								{#each chatting ? messages : lastMessages as message, messageIndex (message.timestamp)}
 									<tr
-										class={`${user && message.uid === user.uid ? 'grey' : ''}${chatting ? ' column' : ''}`}
+										class={`${user && message.uid === user.uid ? 'grey' : ''}${chatting === chatting ? ' column' : ''}`}
 									>
 										{#if screenWidth > 600 || !(messageIndex > 0 && message.uid === (chatting ? messages : lastMessages)[messageIndex - 1].uid)}
 											<td
-												style="margin-top: {screenWidth > 600
-													? '0'
-													: '1rem'}; min-width: {userNameWidth}"
+												style="margin-top: {screenWidth > 600 ? '0' : '1rem'}; min-width: {chatting
+													? userNameWidth
+													: 0}"
 											>
 												{#if !(messageIndex > 0 && message.uid === (chatting ? messages : lastMessages)[messageIndex - 1].uid)}
 													<div class="user-name">
@@ -610,7 +656,7 @@
 							{/if}
 							{#if !leavePopupVisible && !(chatting && !room?.open)}
 								<tr>
-									<td class={`${chatting ? 'bottom-spacer' : ''}`}></td>
+									<td class={`${chatting ? 'bottom-spacer' : 'new-chat-spacer'}`}></td>
 								</tr>
 								<tr class={`${chatting ? 'sticky border-top' : ''}`}>
 									{#if screenWidth > 600 && chatting}
@@ -636,6 +682,7 @@
 												placeholder={chatting || selectedTab == 1 || messages.length === 0
 													? 'Type a message..'
 													: 'Type a response..'}
+												maxlength={chatting && room && room.userCount === 2 ? 3000 : 144}
 												required
 												on:keydown={handleKeydown}
 											/>
@@ -769,6 +816,10 @@
 
 				&.bottom-spacer {
 					height: 160px;
+				}
+
+				&.new-chat-spacer {
+					height: 20px;
 				}
 
 				&.less-padding {

@@ -21,7 +21,15 @@
 	import Modal from '../components/Modal.svelte';
 	import { modalState, closeModal, openModal, toggleState } from '../store/modalStore';
 	import messageStore from '../store/messageStore';
-	import { menuOpenStore, popupVisible, scrolling } from '../store/eventStore';
+	import {
+		menuOpenStore,
+		popupVisible,
+		scrolling,
+		soundsEnabledStore,
+		notificationsEnabledStore,
+		soundsAvailableStore,
+		notificationsAvailableStore
+	} from '../store/eventStore';
 	import { firebaseErrorMessages } from '../lib/firebaseErrorMessages';
 
 	let error = '';
@@ -253,8 +261,43 @@
 		}
 	}
 
+	$: soundsEnabled = $soundsEnabledStore;
+	$: notificationsEnabled = $notificationsEnabledStore;
+	$: soundsAvailable = $soundsAvailableStore;
+	$: notificationsAvailable = $notificationsAvailableStore;
+
+	// Toggle sound on/off
+	function toggleSounds() {
+		const newSoundsEnabled = !soundsEnabled;
+		soundsEnabledStore.set(newSoundsEnabled);
+
+		// Save the updated value to localStorage
+		localStorage.setItem('soundsEnabled', newSoundsEnabled.toString());
+	}
+
+	// Toggle notifications on/off
+	function toggleNotifications() {
+		const newNotificationsEnabled = !notificationsEnabled;
+		notificationsEnabledStore.set(newNotificationsEnabled);
+
+		// Save the updated value to localStorage
+		localStorage.setItem('notificationsEnabled', newNotificationsEnabled.toString());
+	}
+
 	// Add the event listener when the component is mounted
 	onMount(() => {
+		const storedSoundsEnabled = localStorage.getItem('soundsEnabled');
+		if (storedSoundsEnabled !== null) {
+			// Set the store based on the stored value (convert from string to boolean)
+			soundsEnabledStore.set(storedSoundsEnabled === 'true');
+		}
+
+		const storedNotificationsEnabled = localStorage.getItem('notificationsEnabled');
+		if (storedNotificationsEnabled !== null) {
+			// Set the store based on the stored value (convert from string to boolean)
+			notificationsEnabledStore.set(storedNotificationsEnabled === 'true');
+		}
+
 		window.addEventListener('scroll', handleSroll);
 
 		// Cleanup the event listener when the component is destroyed
@@ -329,6 +372,79 @@
 				{/if}
 				<button class="link dark" on:click={handleClickDeleteAccount}>Close Account</button>
 				<button class="link dark" on:click={handleLogOut}>Log Out</button>
+				<div class="button-set">
+					{#if soundsAvailable}
+						<button class="link dark" on:click={toggleSounds}>
+							{#if soundsEnabled}
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="1.5"
+									stroke="currentColor"
+									class="size-6"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"
+									/>
+								</svg>
+							{:else}
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="1.5"
+									stroke="currentColor"
+									class="size-6"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6 4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"
+									/>
+								</svg>
+							{/if}
+							<!-- {`Turn ${soundsEnabled ? 'Off' : 'On'} Chime`} -->
+						</button>
+					{/if}
+					{#if notificationsAvailable}
+						<button class="link dark" on:click={toggleNotifications}>
+							{#if notificationsEnabled}
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="1.5"
+									stroke="currentColor"
+									class="size-6"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0M3.124 7.5A8.969 8.969 0 0 1 5.292 3m13.416 0a8.969 8.969 0 0 1 2.168 4.5"
+									/>
+								</svg>
+							{:else}
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="1.5"
+									stroke="currentColor"
+									class="size-6"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M9.143 17.082a24.248 24.248 0 0 0 3.844.148m-3.844-.148a23.856 23.856 0 0 1-5.455-1.31 8.964 8.964 0 0 0 2.3-5.542m3.155 6.852a3 3 0 0 0 5.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 0 0 3.536-1.003A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53"
+									/>
+								</svg>
+							{/if}
+						</button>
+					{/if}
+				</div>
 			</div>
 		</div>
 	</div>
@@ -672,6 +788,12 @@
 			}
 
 			button {
+				padding-top: 1rem;
+			}
+
+			.button-set {
+				display: flex;
+				gap: 1rem;
 				padding-top: 1rem;
 			}
 		}

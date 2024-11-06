@@ -58,12 +58,16 @@
 		max-width: 800px;
 		margin: 0 auto;
 		cursor: auto;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
 	}
 	.modal-content {
 		padding: 2rem;
 		display: flex;
 		flex-direction: column;
 		gap: 2rem;
+		height: 100%;
 	}
 
 	.modal-header {
@@ -77,6 +81,13 @@
 		margin: 0;
 	}
 
+	.modal-body {
+		flex-grow: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+
 	.modal-close {
 		min-width: 0;
 		background: none;
@@ -86,14 +97,20 @@
 		cursor: pointer;
 	}
 
-	@media (max-width: 700px) {
+	@media (max-width: 600px) {
 		.modal-container {
 			max-width: 100vw;
 			max-height: 100vh;
 			overflow-y: auto;
 		}
+	}
+
+	@media (max-width: 500px) {
+		.modal-container {
+			height: 100%;
+		}
 		.modal-content {
-			padding: 2rem 1rem;
+			padding: 1rem 1rem;
 		}
 	}
 </style>
