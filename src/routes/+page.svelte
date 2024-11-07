@@ -1077,6 +1077,10 @@
 				position: absolute;
 				right: 0;
 				top: -46px;
+
+				button {
+					height: 46px;
+				}
 			}
 
 			button {

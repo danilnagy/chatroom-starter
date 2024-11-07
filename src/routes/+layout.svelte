@@ -314,7 +314,7 @@
 		on:touchmove|preventDefault={() => {}}
 	>
 		<div class="top-bar">
-			<div><h2>tincann.ing</h2></div>
+			<div><strong>tincann.ing</strong></div>
 			{#if user}
 				<div class="top-form">
 					<button class="no-border" on:click={handleMenuToggle}>
@@ -664,6 +664,8 @@
 </div>
 
 <style lang="scss">
+	$window-height: 100vh;
+
 	$top-bar-height: 3.5rem;
 	$top-bar: $top-bar-height - 2rem;
 	$divider-height: 0.125rem;
@@ -975,6 +977,21 @@
 					padding: 0 1rem;
 				}
 			}
+		}
+	}
+
+	@media (max-width: 400px) {
+		.menu {
+			top: calc(-1 * (100vh - $top-bar-height - $top-bar-height - $divider-height));
+			min-height: calc(100vh - $top-bar-height);
+			max-height: calc(100vh - $top-bar-height);
+		}
+	}
+
+	@media (max-width: 300px) {
+		.top-form {
+			position: absolute;
+			right: 0;
 		}
 	}
 </style>
