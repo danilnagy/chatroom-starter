@@ -209,5 +209,6 @@ input.dark {
 @media (max-width: 300px) {
 	body {
 		font-size: 10pt;
+		line-height: 16pt;
 	}
 }

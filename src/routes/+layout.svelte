@@ -674,8 +674,8 @@
 	$top-menu-height-lg: 15rem;
 	$top-menu-height-sm: 30rem;
 
-	$top-menu-offset-lg: -1 * ($top-menu-height-lg - $top-bar-height - $divider-height);
-	$top-menu-offset-sm: -1 * ($top-menu-height-sm - $top-bar-height - $divider-height);
+	$top-menu-offset-lg: -1 * ($top-menu-height-lg - $top-bar-height);
+	$top-menu-offset-sm: -1 * ($top-menu-height-sm - $top-bar-height);
 
 	$content-offset-lg: $top-menu-height-lg + $menu-content-gap;
 	$content-offset-sm: $top-menu-height-sm + $menu-content-gap;
@@ -776,6 +776,9 @@
 		z-index: 10;
 		max-width: 800px;
 		margin: 0 auto;
+
+		overflow: hidden;
+		border-bottom: solid black 2px;
 
 		.menu-content {
 			box-sizing: border-box;
@@ -982,13 +985,13 @@
 
 	@media (max-width: 400px) {
 		.menu {
-			top: calc(-1 * (100vh - $top-bar-height - $top-bar-height - $divider-height));
+			top: calc(-1 * (100vh - $top-bar-height - $top-bar-height));
 			min-height: calc(100vh - $top-bar-height);
 			max-height: calc(100vh - $top-bar-height);
 		}
 	}
 
-	@media (max-width: 300px) {
+	@media (max-width: 400px) {
 		.top-form {
 			position: absolute;
 			right: 0;
