@@ -489,9 +489,29 @@
 	});
 
 	$: userNameWidth = `${minUserNameWidth}px`;
+
+	let dataPromise: any = null;
+	let to: string = 'kidvsking@yahoo.com';
+	async function sendEmail(): Promise<string> {
+		const response = await fetch('./api/sendMail', {
+			method: 'POST',
+			body: JSON.stringify({
+				to
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		return await response.json();
+	}
 </script>
 
 <div class="wrapper">
+	<button
+		on:click={() => {
+			dataPromise = sendEmail();
+		}}>Send Email</button
+	>
 	{#if !renderBlock}
 		<div class={`top-overlay${menuOpen ? ' menu-open' : ''}`}>
 			{#if chatting && room?.open && !leavePopupVisible}
