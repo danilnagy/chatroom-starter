@@ -70,8 +70,9 @@ export function reloadPage(delay: number = 0) {
     }
 }
 
-export function gHome() {
-    goToPage("https://www.tincann.ing");
+export function goHome() {
+    const baseUrl = import.meta.env.VITE_BASE_URL || "https://www.tincann.ing"
+    goToPage(baseUrl);
 }
 
 export function goToPage(url: string, delay: number = 0) {
@@ -125,6 +126,7 @@ export function calcRating(FScores: number[], MScores: number[]): number {
 }
 
 export function validateEmail(email: string): boolean {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
+    // const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailPattern.test(email);
 }

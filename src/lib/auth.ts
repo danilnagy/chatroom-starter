@@ -21,17 +21,19 @@ import {
 	addDoc,
 	getDoc,
 	setDoc,
+	deleteDoc,
 	query,
 	orderBy,
 	limit,
-	getDocs
+	getDocs,
+	where
 } from 'firebase/firestore';
 
 import userStore, { type User } from '../store/userStore';
 import usersStore, { type UserLookup } from '../store/usersStore';
 import { modalState } from '../store/modalStore';
 
-import { gHome } from '../lib/utils';
+import { goHome } from '../lib/utils';
 import { tick } from 'svelte';
 
 export async function sendVerificationEmail(user: FirebaseUser): Promise<void> {
@@ -39,15 +41,18 @@ export async function sendVerificationEmail(user: FirebaseUser): Promise<void> {
 	console.log('Verification email sent!');
 }
 
-export async function signUp(userName: string, email: string, password: string): Promise<void> {
+export async function signUp(userName: string, email: string, password: string, verify: boolean = false): Promise<void> {
 	const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 	const user = userCredential.user;
 
-	await sendVerificationEmail(user);
+	if (verify) await sendVerificationEmail(user);
 
 	const uid = user.uid;
 	const userRef = doc(db, 'users', uid);
 	await setDoc(userRef, { uid, userName, currentRoomId: '', timestamp: Date.now(), rating: 5 });
+
+	const emailsRef = collection(db, 'emails');
+	await addDoc(emailsRef, { email });
 
 	userStore.update((user) => {
 		if (user) {
@@ -60,8 +65,9 @@ export async function signUp(userName: string, email: string, password: string):
 }
 
 export async function logIn(email: string, password: string): Promise<void> {
-	const userCredential = await signInWithEmailAndPassword(auth, email, password);
-	const user = userCredential.user;
+	await signInWithEmailAndPassword(auth, email, password);
+	// const userCredential = await signInWithEmailAndPassword(auth, email, password);
+	// const user = userCredential.user;
 }
 
 export async function logOut(): Promise<void> {
@@ -121,7 +127,7 @@ export function parseSignInLink() {
 				// getAdditionalUserInfo(result)?.profile
 				// You can check if the user is new or existing:
 				// getAdditionalUserInfo(result)?.isNewUser
-				gHome();
+				goHome();
 			})
 			.catch((error) => {
 				// Some error occurred, you can inspect the code: error.code
@@ -236,7 +242,20 @@ export async function reAuth(user: FirebaseUser, email: string, password: string
 }
 
 export async function deleteUserAccount(user: FirebaseUser): Promise<void> {
+	// delete email from emails collection
+	const emailsRef = collection(db, 'emails');
+	const q = query(emailsRef, where("email", "==", user.email));
+	const querySnapshot = await getDocs(q);
+
+	// Iterate through each matching document and delete it
+	querySnapshot.forEach(async (doc) => {
+		await deleteDoc(doc.ref);
+		console.log(`Deleted document with email: ${user.email}`);
+	});
+
+	// delete firebase auth user
 	await deleteUser(user);
+
 	console.log(`Deleted user account for user ${user.uid}`);
 	userStore.set(null);
 	usersStore.set({});
@@ -245,6 +264,28 @@ export async function deleteUserAccount(user: FirebaseUser): Promise<void> {
 function isUser(obj: any): obj is User {
 	return obj && typeof obj === 'object' && 'userName' in obj;
 }
+
+export async function checkEmailRegistered(email: string): Promise<boolean> {
+	try {
+		console.warn("checking email")
+
+		const emailsRef = collection(db, 'emails');
+		const q = query(emailsRef, where("email", "==", email));
+		const querySnapshot = await getDocs(q);
+
+		// Check if there are any documents in the snapshot
+		if (!querySnapshot.empty) {
+			console.log("Email is already registered.");
+			return true;
+		} else {
+			console.log("Email is not registered.");
+			return false;
+		}
+	} catch (error) {
+		console.error("Error checking email:", error);
+		return false;
+	}
+};
 
 // Subscribe to modalState store to get the callback function
 let callback: Function;
@@ -262,7 +303,7 @@ onAuthStateChanged(auth, async (user) => {
 		const newUser = {
 			email: user.email!,
 			uid: user.uid,
-			verified: user.emailVerified,
+			verified: true, // user.emailVerified,
 			firebaseUser: user,
 			...userData
 		};

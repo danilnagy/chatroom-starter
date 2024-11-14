@@ -42,6 +42,7 @@
 	"dependencies": {
 		"@sendgrid/mail": "^8.1.4",
 		"dotenv": "^16.4.5",
-		"firebase": "^10.12.3"
+		"firebase": "^10.12.3",
+		"googleapis": "^144.0.0"
 	}
 }

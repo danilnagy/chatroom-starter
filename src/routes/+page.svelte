@@ -149,10 +149,14 @@
 				doReplyMessage(user);
 				message = '';
 			} else {
-				openModal('SIGNUP', async (newUser: User, run: boolean) => {
-					if (run) doReplyMessage(newUser);
-					message = '';
-				});
+				openModal(
+					'SIGNUP',
+					async (newUser: User, run: boolean) => {
+						if (run) doReplyMessage(newUser);
+						message = '';
+					},
+					() => {}
+				);
 			}
 		}
 	}
@@ -229,10 +233,14 @@
 			doCreateRoom(user);
 			message = '';
 		} else {
-			openModal('SIGNUP', async (newUser: User, run: boolean) => {
-				if (run) doCreateRoom(newUser);
-				message = '';
-			});
+			openModal(
+				'SIGNUP',
+				async (newUser: User, run: boolean) => {
+					if (run) doCreateRoom(newUser);
+					message = '';
+				},
+				() => {}
+			);
 		}
 	}
 
@@ -489,29 +497,9 @@
 	});
 
 	$: userNameWidth = `${minUserNameWidth}px`;
-
-	let dataPromise: any = null;
-	let to: string = 'kidvsking@yahoo.com';
-	async function sendEmail(): Promise<string> {
-		const response = await fetch('./api/sendMail', {
-			method: 'POST',
-			body: JSON.stringify({
-				to
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		return await response.json();
-	}
 </script>
 
 <div class="wrapper">
-	<button
-		on:click={() => {
-			dataPromise = sendEmail();
-		}}>Send Email</button
-	>
 	{#if !renderBlock}
 		<div class={`top-overlay${menuOpen ? ' menu-open' : ''}`}>
 			{#if chatting && room?.open && !leavePopupVisible}

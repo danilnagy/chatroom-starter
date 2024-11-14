@@ -42,6 +42,11 @@
 	let hideSendLoginLink: boolean = true;
 	let contextMessage: string = '';
 
+	let loginState: number = 0;
+	let submittedEmail: string = '';
+
+	export let data: { email: string | null };
+
 	function clearWarning() {
 		warning = '';
 	}
@@ -53,6 +58,8 @@
 		userName = '';
 		email = '';
 		password = '';
+		loginState = 0;
+		submittedEmail = '';
 		clearError();
 		clearWarning();
 		closeModal();
@@ -86,6 +93,36 @@
 			} else {
 				error = 'Sign Up Failed: An unknown error occurred';
 			}
+		}
+	}
+
+	async function handleSubmitEmail() {
+		clearError();
+		clearWarning();
+		// if (!emailPattern.test(email)) {
+		if (!validateEmail(email)) {
+			error = 'Invalid email format. Please enter a valid email address.';
+			return;
+		}
+
+		const response = await fetch('./api/submit-email', {
+			method: 'POST',
+			body: JSON.stringify({ email }),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		const res = await response.json();
+
+		if (res.success === true) {
+			// email sent
+			submittedEmail = email;
+			email = '';
+			loginState = 1;
+		} else if (res.success === false) {
+			// email not sent, user already exists, load login experience
+			loginState = 2;
 		}
 	}
 
@@ -146,7 +183,11 @@
 
 	function handleChangeInfo() {
 		userName = user?.userName ? user.userName : '';
-		openModal('CHANGEINFO', () => {});
+		openModal(
+			'CHANGEINFO',
+			() => {},
+			() => {}
+		);
 	}
 
 	async function handleUpdateUserName() {
@@ -182,7 +223,11 @@
 	}
 
 	function handleClickDeleteAccount() {
-		openModal('DELETEACCOUNT', () => {});
+		openModal(
+			'DELETEACCOUNT',
+			() => {},
+			() => {}
+		);
 	}
 
 	async function handleDeleteAccount() {
@@ -231,6 +276,10 @@
 	$: room = $roomStore;
 	$: state = $modalState;
 	$: messages = $messageStore;
+
+	$: if (user?.uid) {
+		closeAndResetModal();
+	}
 
 	let numMessages = 0;
 
@@ -300,6 +349,11 @@
 
 		window.addEventListener('scroll', handleSroll);
 
+		if (data.email !== null) {
+			email = data.email;
+			loginState = 2;
+		}
+
 		// Cleanup the event listener when the component is destroyed
 		return () => {
 			window.removeEventListener('scroll', handleSroll);
@@ -340,9 +394,24 @@
 			{:else}
 				<div class="top-form">
 					<div class="button-group">
-						<button class="no-border" on:click={() => openModal('LOGIN', () => {})}>Log In</button>
+						<button
+							class="no-border"
+							on:click={() =>
+								openModal(
+									'AUTH',
+									() => {},
+									() => {}
+								)}>Log In</button
+						>
 						<span>|</span>
-						<button class="no-border" on:click={() => openModal('SIGNUP', () => {})}>Sign Up</button
+						<button
+							class="no-border"
+							on:click={() =>
+								openModal(
+									'AUTH',
+									() => {},
+									() => {}
+								)}>Sign Up</button
 						>
 					</div>
 				</div>
@@ -470,7 +539,7 @@
 			<div class="message-box error">
 				<div class="message">
 					{error}
-					{#if ['LOGIN', 'DELETEACCOUNT'].includes(state.state) && !hideSendLoginLink}
+					{#if ['LOGIN', 'DELETEACCOUNT', 'AUTH'].includes(state.state) && !hideSendLoginLink}
 						<button class="link dark" on:click={handleSendSignInLink}>Send login link</button>
 					{/if}
 				</div>
@@ -479,7 +548,150 @@
 				</div> -->
 			</div>
 		{/if}
-		{#if state.state === 'SIGNUP'}
+		{#if state.state === 'AUTH'}
+			{#if loginState === 2}
+				<div class="two-col">
+					<!-- <div class="col"></div> -->
+					<div class="col min">
+						<div class="login-form">
+							<div class="form-section">
+								<div class="label">Email</div>
+								<input
+									class="dark"
+									type="email"
+									bind:value={email}
+									placeholder=""
+									disabled
+									on:keyup={(event) => {
+										if (event.key === 'Enter') handleLogIn();
+									}}
+								/>
+							</div>
+
+							<div class="form-section">
+								<div class="label">Password</div>
+								<input
+									class="dark"
+									type="password"
+									bind:value={password}
+									placeholder=""
+									on:keyup={(event) => {
+										if (event.key === 'Enter') handleLogIn();
+									}}
+								/>
+							</div>
+							<div class="form-section">
+								<div class="label"></div>
+								<div class="button-group">
+									<button class="link dark" on:click={closeAndResetModal}
+										><strong>Cancel</strong></button
+									>
+									<button class="primary-dark" on:click={handleLogIn}>Log in</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			{:else}
+				<div class="two-col">
+					<div class="col">
+						{#if loginState === 0}
+							<p>We'll only email you to help log in.</p>
+						{:else if loginState === 1}
+							<p>
+								{`Click the link sent to ${submittedEmail} (check your spam folder if you don't see it)`}
+							</p>
+							<p>Or try a different email:</p>
+						{:else if loginState === 2}
+							<p></p>
+						{/if}
+					</div>
+					<div class="col min">
+						<div class="login-form">
+							<div class="form-section">
+								<div class="label">Email</div>
+								<input
+									class="dark"
+									type="email"
+									bind:value={email}
+									placeholder=""
+									on:keyup={(event) => {
+										if (event.key === 'Enter') handleSubmitEmail();
+									}}
+								/>
+							</div>
+							<div class="form-section">
+								<div class="label"></div>
+								<div class="button-group">
+									<button class="link dark" on:click={closeAndResetModal}
+										><strong>Cancel</strong></button
+									>
+									<button class="primary-dark" on:click={handleSubmitEmail}>Submit</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			{/if}
+		{:else if state.state === 'REGISTER'}
+			<div class="two-col">
+				<div class="col">
+					<p>{`${data.email} is verified!`}</p>
+					<p>What should we call you? Choose an anonymous username</p>
+				</div>
+				<div class="col min">
+					<div class="login-form">
+						<div class="form-section">
+							<div class="label">Username</div>
+							<input
+								class="dark"
+								type="text"
+								bind:value={userName}
+								placeholder=""
+								maxlength="11"
+								on:keyup={(event) => {
+									if (event.key === 'Enter') handleSignUp();
+								}}
+							/>
+						</div>
+						<div class="form-section">
+							<div class="label">Email</div>
+							<input
+								class="dark"
+								type="email"
+								bind:value={email}
+								placeholder=""
+								disabled
+								on:keyup={(event) => {
+									if (event.key === 'Enter') handleSignUp();
+								}}
+							/>
+						</div>
+						<div class="form-section">
+							<div class="label">Password</div>
+							<input
+								class="dark"
+								type="password"
+								bind:value={password}
+								placeholder=""
+								on:keyup={(event) => {
+									if (event.key === 'Enter') handleSignUp();
+								}}
+							/>
+						</div>
+						<div class="form-section">
+							<div class="label"></div>
+							<div class="button-group">
+								<button class="link dark" on:click={closeAndResetModal}
+									><strong>Cancel</strong></button
+								>
+								<button class="primary-dark" on:click={handleSignUp}>Submit</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		{:else if state.state === 'SIGNUP'}
 			<div class="two-col">
 				<div class="col">
 					<p>Please choose an anonymous username.</p>
@@ -734,6 +946,10 @@
 						display: flex;
 						flex-grow: 1;
 						justify-content: space-between;
+
+						&.single {
+							justify-content: end;
+						}
 						button {
 							flex: 1;
 							text-align: left;
